@@ -94,9 +94,21 @@ buyer approval and matching capture require separate provider verification.
 - `ast spec validate -f astropods.yml`: passed with checksum-verified Astropods
   CLI `ast/0.28.1 (0311811) BETA`. CLI was downloaded to ignored local artifacts.
   Publishing and deployment require authenticating the user's Astropods account.
-- Hosted UID/storage permissions, unprivileged-port configuration, HTTPS routing,
-  OIDC front door, live model tool compatibility and real Sandbox checkout:
-  not tested on Astropods. No deployment or real gateway success is claimed.
+- Hosted verification on 2026-10-09: published build `5a1c8825` and deployed
+  one replica. Astropods reported active/ready, with both workloads ready.
+  The container passed its storage and port startup checks.
+- Assigned HTTPS frontend and OIDC login: verified in a signed-in browser.
+  Hosted shopper authentication and deterministic ALLOW / REVIEW / BLOCK passed.
+- Real gateway: a claude-haiku-4-5 proposal completed through the bounded catalog
+  and proposal loop and independently received ALLOW. No PayPal order was created.
+- In-place redeploy: all four saved records persisted; reloading the real-model
+  intent returned identical intent ID, decision, explanation and audit entries.
+- Real PayPal OAuth, buyer approval and completed capture remain unverified on
+  this deployment. Configured credentials are not evidence of payment success.
+- CLI `agent restart --component agent` returned no pod found even while the
+  deployment was ready. Persistence was verified with an in-place redeploy instead.
+- Account billing check: signup-credit plan, no payment method, overage enforcement
+  enabled. No paid model fallback or payment method was configured.
 
 Browser verification initially exposed a fixture shutdown timeout caused by
 open browser sockets. Test teardown now closes those sockets; application
