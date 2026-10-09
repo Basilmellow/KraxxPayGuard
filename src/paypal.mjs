@@ -59,7 +59,12 @@ export class PayPal {
           method: 'POST', redirect: 'error', signal: AbortSignal.timeout(15000),
           headers: { Authorization: `Basic ${Buffer.from(`${this.config.paypalClientId}:${this.config.paypalClientSecret}`).toString('base64')}`,
             'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=client_credentials' });
-        requireValue(response.ok, 502, 'PayPal Sandbox OAuth failed', 'PAYPAL_OAUTH_FAILED');
+        if (!response.ok) {
+          const details = await response.json().catch(() => ({}));
+          if (response.status === 401 && details.error === 'invalid_client')
+            throw new AppError(503, 'PayPal Sandbox rejected the client ID/secret pair. Use matching credentials from the same Sandbox REST app, then restart the server.', 'PAYPAL_CREDENTIALS_REJECTED');
+          throw new AppError(502, 'PayPal Sandbox OAuth failed', 'PAYPAL_OAUTH_FAILED');
+        }
         const token = await response.json();
         requireValue(typeof token.access_token === 'string' && token.access_token.length > 0 &&
           Number.isFinite(token.expires_in) && token.expires_in > 60, 502, 'Invalid PayPal OAuth response');

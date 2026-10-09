@@ -122,3 +122,30 @@ test('hostile model rationale and original instruction render as text, never HTM
   const response = await page.request.get(fixture.settings.origin);
   expect(response.headers()['content-security-policy']).toContain("script-src 'self'");
 });
+
+test('changing scenario clears the stale verdict and preserves the saved intent', async ({ page }) => {
+  await connect(page); await run(page, 'allow');
+  await expect(page.locator('#result .verdict strong')).toHaveText('ALLOW');
+  await page.locator('[data-case="review"]').click();
+  await expect(page.locator('#result .verdict')).toHaveCount(0);
+  await expect(page.locator('#result')).toContainText('New scenario selected');
+  await expect(page.locator('#history-list')).toContainText('Security Field Notebook');
+  expect(fixture.store.list('shopper')).toHaveLength(1);
+  await expect(page.locator('#access-help')).toContainText('SHOPPER_TOKEN=');
+  await expect(page.locator('#access-help')).toContainText('OPERATOR_TOKEN=');
+});
+
+test('exhausted model credits show an actionable error while retaining BLOCK', async ({ page }) => {
+  await fixture.close();
+  fixture = await apiFixture({ config: { openaiKey: 'fake-test-key', openaiModel: 'test-model' },
+    modelFetch: async () => Response.json({ error: { type: 'insufficient_quota',
+      code: 'credit_balance_exhausted', message: 'private provider body' } }, { status: 429 }) });
+  await page.goto(fixture.settings.origin); await connect(page);
+  await expect(page.locator('#ai-state')).toContainText('Credentials configured');
+  await page.locator('#agent-mode').selectOption('live'); await run(page);
+  await expect(page.locator('#result .verdict strong')).toHaveText('BLOCK');
+  await expect(page.locator('#result')).toContainText('MODEL_QUOTA_EXHAUSTED');
+  await expect(page.locator('#result')).toContainText('Check API billing');
+  await expect(page.locator('#result')).not.toContainText('private provider body');
+  expect(fixture.fake.state.calls).toEqual([]);
+});

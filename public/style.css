@@ -236,6 +236,16 @@ h1 em {
   font-size:10px;
   color:#82939f;
 }
+.access-help {
+  color: #98aab7;
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 11px 0;
+}
+.access-help code {
+  color: #c1d9cc;
+  font-size: 10px;
+}
 .provider-status {
   display:flex;
   gap:28px;

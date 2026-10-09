@@ -41,6 +41,11 @@ document.querySelectorAll('[data-case]').forEach(button => button.addEventListen
   $('auto-limit').value = scenarios[selected].auto;
   $('consent-check').checked = false;
   pendingConsent = null;
+  const previous = active;
+  active = null;
+  $('result').replaceChildren(element('p', 'New scenario selected. Authorize and run the agent to evaluate this purchase. Previous records remain in transaction history.', 'empty'));
+  message(previous && ['CREATING', 'CAPTURING'].includes(previous.payment.status) ?
+    'The previous payment has an unresolved operation. Its record and request IDs are preserved in transaction history; inspect that record before retrying it.' : '');
 }));
 
 $('connect-form').addEventListener('submit', async event => {
@@ -55,7 +60,7 @@ $('connect-form').addEventListener('submit', async event => {
     $('disconnect').hidden = false;
     $('evaluate').disabled = false;
     $('refresh').disabled = false;
-    $('ai-state').textContent = status.aiConfigured ? `Ready · ${status.model}` : 'Not configured · fixtures available';
+    $('ai-state').textContent = status.aiConfigured ? `Credentials configured · ${status.model}` : 'Not configured · fixtures available';
     $('paypal-state').textContent = status.providerMode === 'MOCK_TEST_FIXTURE' ? 'Mock test provider · no PayPal call' :
       status.paypalConfigured ? 'Sandbox credentials configured' : 'Credentials required';
     $('ai-dot').classList.toggle('ready', status.aiConfigured);
@@ -82,6 +87,8 @@ $('disconnect').addEventListener('click', () => {
 $('purchase-form').addEventListener('submit', async event => {
   event.preventDefault();
   const button = $('evaluate'); button.disabled = true;
+  const originalButtonNodes = [...button.childNodes];
+  button.textContent = 'Authorizing purchase…';
   message('');
   try {
     const body = { productId: scenarios[selected].productId, scenario: selected,
@@ -90,13 +97,14 @@ $('purchase-form').addEventListener('submit', async event => {
     if (!pendingConsent || pendingConsent.fingerprint !== fingerprint) pendingConsent = { fingerprint, key: crypto.randomUUID() };
     const auth = await api('/api/authorizations', body, pendingConsent.key);
     pendingConsent.authorizationId = auth.id;
+    button.textContent = $('agent-mode').value === 'live' ? 'Calling model & checking policy…' : 'Checking policy…';
     const item = await api('/api/agent/runs', { authorizationId: auth.id, mode: $('agent-mode').value });
     render(item);
     pendingConsent = null;
     $('consent-check').checked = false;
     await refresh();
   } catch (error) { message(error.message + ' Retry preserves the current consent request.'); }
-  finally { button.disabled = !token; }
+  finally { button.replaceChildren(...originalButtonNodes); button.disabled = !token; }
 });
 
 function action(label, route, payload = {}, className = 'primary') {
@@ -143,7 +151,9 @@ function render(item) {
   }
   const agent = element('div', undefined, 'agent-note');
   agent.append(element('small', item.agent.mode === 'live' ? 'REAL MODEL API · EXPLANATION IS UNVERIFIED' : 'DETERMINISTIC TEST AGENT · NO MODEL CALL'));
-  agent.append(element('span', item.agent.explanation || `Agent status: ${item.agent.status}. ${item.agent.errorCode || 'An interrupted run remains denied. Issue new consent to try again.'}`));
+  agent.append(element('span', item.agent.explanation || item.agent.errorMessage ||
+    `Agent status: ${item.agent.status}. ${item.agent.errorCode || 'An interrupted run remains denied. Issue new consent to try again.'}`));
+  if (item.agent.errorCode) agent.append(element('small', item.agent.errorCode));
   out.append(element('p', 'AGENT PROVENANCE', 'section-label'), agent);
   const payment = element('div', undefined, 'payment-area');
   payment.append(element('p', `PAYMENT / ${item.payment.status}`, 'payment-state'));
@@ -158,7 +168,7 @@ function render(item) {
   const eligible = item.agent.status === 'COMPLETED' && item.decision !== 'BLOCK' && ['APPROVED', 'NOT_REQUIRED'].includes(item.approval);
   if (eligible && item.payment.status !== 'COMPLETED') {
     if (!status?.paypalConfigured) payment.append(element('p', 'Sandbox checkout needs PayPal credentials and the merchant ID in the server environment. No payment has been simulated.', 'payment-state'));
-    else if (!item.payment.orderId) payment.append(action(item.payment.status === 'CREATING' ? 'Retry Sandbox order creation' : 'Create PayPal Sandbox order', route + '/checkout'));
+    else if (!item.payment.orderId) payment.append(action(item.payment.createStartedAt ? 'Retry Sandbox order creation' : 'Create PayPal Sandbox order', route + '/checkout'));
     else {
       if (item.payment.approvalUrl) {
         const link = element('a', 'Open Sandbox buyer approval ↗');
