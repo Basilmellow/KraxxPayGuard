@@ -11,5 +11,7 @@ async function check(dir) {
     }
   }
 }
-for (const dir of ['src', 'public', 'scripts', 'test']) await check(dir);
+for (const dir of ['src', 'public', 'scripts', 'test', 'e2e']) await check(dir);
+const configuration = spawnSync(process.execPath, ['--check', 'playwright.config.mjs'], { stdio: 'inherit' });
+if (configuration.status !== 0) process.exit(1);
 console.log('JavaScript syntax checks passed. Security behavior is covered by npm test.');

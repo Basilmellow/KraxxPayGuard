@@ -1,1 +1,61 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kraxx PayGuard — Payment Intent Firewall</title><link rel="stylesheet" href="/style.css"></head><body><main><header><div class="brand">◈ KRAXX<span>PAYGUARD</span></div><small>SECURE AGENTIC COMMERCE · PROTOTYPE</small></header><section class="hero"><p class="eyebrow">PAYMENT INTENT FIREWALL / 2026</p><h1>Money moves only<br><em>when intent is verified.</em></h1><p>Deterministic payment policy enforcement between autonomous AI agents and PayPal Sandbox. Evaluate an intent and inspect every decision.</p><div class="badges"><span>◆ Server-owned authorization</span><span>◆ ALLOW / REVIEW / BLOCK</span><span>◆ Sandbox-only payments</span></div></section><section class="work"><div><h2>01 <span>Simulate agent intent</span></h2><p>Choose an attack or purchase flow.</p><div class="options"><button data-case="allow">Authorized purchase <small>$49.00 · ALLOW</small></button><button data-case="review">Human approval <small>$650.00 · REVIEW</small></button><button data-case="block">Prompt injection <small>Malicious context · BLOCK</small></button></div><button id="evaluate" class="primary">Evaluate payment intent →</button></div><div class="result"><h2>02 <span>Firewall verdict</span></h2><div id="result"><p class="empty">Select a scenario, then evaluate to see the policy decision, checks and audit trail.</p></div></div></section><footer><span>KRAXXSEC / SECURITY ENGINEERING</span><span>Local-first • Development build</span></footer></main><script src="/app.js" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Kraxx PayGuard — a Payment Intent Firewall for agentic commerce. Sandbox demonstration by KRAXXSEC.">
+  <title>Kraxx PayGuard — Payment Intent Firewall</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="rail">
+    <a class="brand" href="/" aria-label="Kraxx PayGuard home"><span class="brand-mark">K</span><span>KRAXX<span class="brand-sub">PAYGUARD</span></span></a>
+    <div class="rail-label">CONTROL ROOM</div>
+    <a class="nav active" href="#workspace"><span>◈</span> Intent firewall</a>
+    <a class="nav" href="#history"><span>≡</span> Transaction history</a>
+    <a class="nav" href="#boundary"><span>⊡</span> Security boundary</a>
+    <div class="rail-foot"><span class="mini-label">BUILT BY KRAXXSEC</span><p>Agentic commerce.<br>Accountable execution.</p><span class="sandbox-label">SANDBOX ONLY</span></div>
+  </aside>
+  <main>
+    <header><span class="breadcrumb">WORKSPACE <span>/</span> PAYMENT INTENT FIREWALL</span><span class="sandbox-label">PAYPAL SANDBOX</span></header>
+    <section class="hero">
+      <div><p class="eyebrow">TRUST THE INTENT. VERIFY THE PAYMENT.</p><h1>Money moves only<br><em>when intent is verified.</em></h1><p class="intro">Your agent can shop. Your policy decides what gets paid.<br>Every proposal checked against the authorization you actually gave.</p></div>
+      <div class="hero-stamp"><span class="stamp-mark">◈</span><span>PAYMENT INTENT<br>FIREWALL</span><small>KRAXXSEC / pg-v2</small></div>
+    </section>
+    <section class="connection" aria-label="Access and provider status">
+      <form id="connect-form"><label for="access-token">Workspace access</label><div class="connect-controls"><input id="access-token" type="password" placeholder="Enter shopper or operator token" autocomplete="off" maxlength="256" required><button type="submit" id="connect">Connect</button><button type="button" id="disconnect" class="quiet" hidden>Disconnect</button></div><small id="access-state">Use your local .env token. Kept only in this page’s memory.</small></form>
+      <div class="provider-status"><div><span class="status-dot" id="ai-dot"></span><span>MODEL</span><strong id="ai-state">Not connected</strong></div><div><span class="status-dot" id="paypal-dot"></span><span>PAYPAL</span><strong id="paypal-state">Not connected</strong></div></div>
+    </section>
+    <div id="message" role="status" aria-live="polite" hidden></div>
+    <section class="workspace" id="workspace">
+      <section class="panel compose">
+        <div class="panel-title"><div><span class="step">01</span><h2>Authorize a purchase</h2></div><span class="mini-label">USER CONSENT</span></div>
+        <p class="panel-intro">Set the boundaries before the agent sees merchant content.</p>
+        <div class="scenario-label">DEMO SCENARIO</div>
+        <div class="options" role="group" aria-label="Demo scenarios">
+          <button type="button" data-case="allow" class="selected" aria-pressed="true"><span class="case-icon green">↗</span><span>Authorized purchase<small>Trusted notebook · $49</small></span><span class="case-tag green">ALLOW</span></button>
+          <button type="button" data-case="review" aria-pressed="false"><span class="case-icon amber">↗</span><span>Above automatic limit<small>Workspace console · $650</small></span><span class="case-tag amber">REVIEW</span></button>
+          <button type="button" data-case="block" aria-pressed="false"><span class="case-icon red">⊘</span><span>Malicious merchant content<small>Injected payment redirection</small></span><span class="case-tag red">BLOCK</span></button>
+        </div>
+        <form id="purchase-form">
+          <label for="instruction">Original instruction</label><textarea id="instruction" maxlength="500" rows="2" required>Buy one Security Field Notebook from the selected store within my $50 budget.</textarea>
+          <div class="field-row"><div><label for="budget">Total budget · USD</label><input id="budget" type="number" value="50" min="0.01" max="1000" step="0.01" required></div><div><label for="auto-limit">Automatic limit · USD</label><input id="auto-limit" type="number" value="50" min="0.01" max="100" step="0.01" required></div></div>
+          <div class="consent-summary"><span>AUTHORIZED RECIPIENT</span><strong id="merchant">Connect to verify the configured merchant</strong><small>One selected item · USD · 15-minute consent · one intent</small></div>
+          <label for="agent-mode">Agent mode</label><select id="agent-mode"><option value="deterministic">Deterministic test agent · reproducible</option><option value="live">Real model API · credentials required</option></select>
+          <label class="consent-check"><input id="consent-check" type="checkbox" required><span>I authorize the selected item, recipient and displayed budget. Spending above the automatic limit requires operator review.</span></label>
+          <button type="submit" class="primary" id="evaluate" disabled>Authorize & run agent <span>→</span></button>
+          <small class="form-note">This issues consent and evaluates a proposal. PayPal checkout is a separate action.</small>
+        </form>
+      </section>
+      <section class="panel verdict-panel">
+        <div class="panel-title"><div><span class="step">02</span><h2>Inspect the decision</h2></div><span class="mini-label">VERIFIED POLICY</span></div>
+        <div id="result"><div class="empty"><div class="empty-mark">◈</div><h3>Intent first. Execution second.</h3><p>Authorize a purchase to inspect the proposal, independent policy checks and durable audit trail.</p><div class="empty-flow"><span>CONSENT</span><i>→</i><span>AGENT</span><i>→</i><span>FIREWALL</span></div></div></div>
+      </section>
+    </section>
+    <section class="panel history" id="history"><div class="panel-title"><div><span class="step">03</span><h2>Transaction history</h2></div><button type="button" id="refresh" class="quiet" disabled>Refresh ↻</button></div><p class="panel-intro">Saved decisions and Sandbox payment evidence. Select a record to inspect it.</p><div id="history-list"><p class="history-empty">Connect to load your saved records.</p></div></section>
+    <section class="boundary" id="boundary"><div><span class="mini-label">THE SECURITY BOUNDARY</span><h2>Proposal is never permission.</h2></div><p>Merchant content and model output cannot change consent. The server verifies the item, recipient, exact price, currency, budget and review state before PayPal execution. Injection detection adds evidence; deterministic checks enforce authority.</p></section>
+    <footer><span>KRAXXSEC / KRAxx PAYGUARD</span><span>Hackathon release candidate · Sandbox demonstration</span></footer>
+  </main>
+</body>
+</html>
