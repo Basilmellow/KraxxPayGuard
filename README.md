@@ -32,8 +32,9 @@ Real model mode fails closed if credentials or validated tools are unavailable.
 
 ## Real providers
 
-- Add `OPENAI_API_KEY` and an account-supported `OPENAI_MODEL` with Responses
-  function calling to `.env`; restart and choose **Real model API**.
+- Use the sponsor **Astropods AI Gateway** with signup credits and no payment
+  card. Follow [free setup](docs/FREE-SETUP.md) to configure its gateway credentials.
+  Astropods is the default; existing OpenAI keys are ignored. No paid fallback.
 - Add the **Sandbox** business app's `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
   and that business account's `PAYPAL_MERCHANT_ID`; restart.
 - Create an eligible order, open its verified Sandbox buyer link, log in with a

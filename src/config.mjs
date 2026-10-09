@@ -14,9 +14,19 @@ export function loadConfig(env = process.env) {
     requireValue(parsed.protocol === 'https:', 500, 'Remote hosting requires HTTPS APP_ORIGIN');
   const payeeId = env.PAYPAL_MERCHANT_ID || 'kraxx-sandbox-merchant';
   if (env.PAYPAL_MERCHANT_ID) requireValue(/^[A-Z0-9]{8,32}$/.test(payeeId), 500, 'Invalid Sandbox merchant ID');
+  const modelProvider = env.MODEL_PROVIDER || 'astropods';
+  requireValue(['astropods', 'openai'].includes(modelProvider), 500, 'Invalid MODEL_PROVIDER');
+  const gatewayUrl = env.ASTRO_GATEWAY_URL || '';
+  if (gatewayUrl) {
+    const gateway = new URL(gatewayUrl);
+    requireValue(gateway.protocol === 'https:' && gateway.origin === gatewayUrl && !gateway.username && !gateway.password,
+      500, 'ASTRO_GATEWAY_URL must be an exact HTTPS origin from Astropods');
+  }
   return { host, port, origin, operatorToken: env.OPERATOR_TOKEN, shopperToken: env.SHOPPER_TOKEN,
     dbPath: env.DATABASE_PATH || 'data/payguard.sqlite', payeeId,
     paypalClientId: env.PAYPAL_CLIENT_ID || '', paypalClientSecret: env.PAYPAL_CLIENT_SECRET || '',
     paypalMerchantConfigured: !!env.PAYPAL_MERCHANT_ID,
-    openaiKey: env.OPENAI_API_KEY || '', openaiModel: env.OPENAI_MODEL || '', rateLimit: 120 };
+    modelProvider, modelEndpoint: modelProvider === 'astropods' ? (gatewayUrl ? `${gatewayUrl}/v1/responses` : '') : 'https://api.openai.com/v1/responses',
+    openaiKey: modelProvider === 'astropods' ? (env.ASTRO_GATEWAY_API_KEY || '') : (env.OPENAI_API_KEY || ''),
+    openaiModel: modelProvider === 'astropods' ? (env.MODEL_DEFAULT || 'claude-haiku-4-5') : (env.OPENAI_MODEL || ''), rateLimit: 120 };
 }

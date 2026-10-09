@@ -16,11 +16,12 @@ export const tools = [
 
 export class Agent {
   constructor(config, fetcher = fetch) { Object.assign(this, { config, fetcher }); }
-  get configured() { return !!(this.config.openaiKey && this.config.openaiModel); }
+  get configured() { return !!(this.config.openaiKey && this.config.openaiModel &&
+    (this.config.modelProvider !== 'astropods' || this.config.modelEndpoint)); }
   async response(input) {
-    requireValue(this.configured, 503, 'Real model mode needs OPENAI_API_KEY and OPENAI_MODEL', 'MODEL_NOT_CONFIGURED');
+    requireValue(this.configured, 503, 'Real model mode needs the selected provider credentials. See docs/FREE-SETUP.md for sponsor access.', 'MODEL_NOT_CONFIGURED');
     try {
-      const response = await this.fetcher('https://api.openai.com/v1/responses', {
+      const response = await this.fetcher(this.config.modelEndpoint || 'https://api.openai.com/v1/responses', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
         headers: { Authorization: `Bearer ${this.config.openaiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: this.config.openaiModel, store: false, max_output_tokens: 1200,
@@ -33,11 +34,11 @@ export class Agent {
         const details = await response.json().catch(() => ({}));
         if (response.status === 429 && (details.error?.type === 'insufficient_quota' ||
           ['credit_balance_exhausted', 'insufficient_quota'].includes(details.error?.code)))
-          throw new AppError(503, 'OpenAI API credits or quota are exhausted. Check API billing, or explicitly select the deterministic test agent.', 'MODEL_QUOTA_EXHAUSTED');
+          throw new AppError(503, 'Model credits or quota are exhausted. Select the deterministic test agent to continue without spending.', 'MODEL_QUOTA_EXHAUSTED');
         if (response.status === 401)
-          throw new AppError(503, 'OpenAI rejected the API key. Check OPENAI_API_KEY in the server environment.', 'MODEL_CREDENTIALS_REJECTED');
+          throw new AppError(503, 'Model provider rejected the API key. Check the selected provider credentials in the server environment.', 'MODEL_CREDENTIALS_REJECTED');
         if (response.status === 429)
-          throw new AppError(503, 'OpenAI temporarily rate limited the request. Wait before issuing new consent.', 'MODEL_RATE_LIMITED');
+          throw new AppError(503, 'Model provider temporarily rate limited the request. Wait before issuing new consent.', 'MODEL_RATE_LIMITED');
         throw new AppError(502, `Model API failed (${response.status}). Check the configured model and account access.`, 'MODEL_API_FAILED');
       }
       const result = await response.json();
@@ -93,7 +94,7 @@ export class Agent {
         requireValue(proposed, 502, 'Agent tool budget exhausted', 'TOOL_BUDGET_EXCEEDED');
       }
       const evaluation = evaluate({ ...proposed, untrustedContext: context }, auth);
-      return { evaluation, agent: { mode, status: 'COMPLETED', model: mode === 'live' ? this.config.openaiModel : null,
+      return { evaluation, agent: { mode, status: 'COMPLETED', provider: mode === 'live' ? (this.config.modelProvider || 'openai') : null, model: mode === 'live' ? this.config.openaiModel : null,
         explanation: rationale, explanationSource: mode === 'live' ? 'MODEL_UNVERIFIED' : 'DETERMINISTIC_FIXTURE', trace } };
     } catch (error) {
       const evaluation = evaluate({ ...trustedIntent(auth), untrustedContext: context }, auth);

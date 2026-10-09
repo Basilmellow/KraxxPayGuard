@@ -145,7 +145,7 @@ test('exhausted model credits show an actionable error while retaining BLOCK', a
   await page.locator('#agent-mode').selectOption('live'); await run(page);
   await expect(page.locator('#result .verdict strong')).toHaveText('BLOCK');
   await expect(page.locator('#result')).toContainText('MODEL_QUOTA_EXHAUSTED');
-  await expect(page.locator('#result')).toContainText('Check API billing');
+  await expect(page.locator('#result')).toContainText('continue without spending');
   await expect(page.locator('#result')).not.toContainText('private provider body');
   expect(fixture.fake.state.calls).toEqual([]);
 });
