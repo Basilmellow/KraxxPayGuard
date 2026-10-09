@@ -1,0 +1,7 @@
+spec: package/v1
+name: payguard
+
+agent:
+  build:
+    context: .
+    dockerfile: Dockerfile
