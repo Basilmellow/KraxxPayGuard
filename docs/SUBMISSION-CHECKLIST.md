@@ -11,6 +11,7 @@
 - [x] Responsive KRAXXSEC dashboard and all three scenario flows
 - [x] Regression suites, CI configuration, MIT license and environment example
 - [x] Architecture, threat model, deployment/runbook and sub-three-minute script
+- [x] GitHub CI observed green on the pushed candidate: [run 37922401973](https://github.com/Basilmellow/KraxxPayGuard/actions/runs/37922401973)
 
 ## Required before submission
 
@@ -20,7 +21,6 @@
 - [ ] Sandbox capture IDs cross-checked in business account transaction history
 - [ ] Credentialed REVIEW/BLOCK scenarios checked with no policy bypass
 - [ ] Hosted demo deployed and tested on its exact HTTPS origin, if submitting one
-- [ ] GitHub CI run observed green for the pushed release candidate
 - [ ] Demo video recorded in under three minutes without secrets/private data
 - [ ] Hackathon eligibility/submission requirements verified by the owner
 - [ ] Submit correct repository, demo/video links and disclose remaining limitations

@@ -30,5 +30,10 @@ override. Failed runs were not reported as successful acceptance evidence.
 No provider credentials were available. Real model invocation, Sandbox OAuth,
 buyer approval and completed capture remain unverified. Use the Sandbox runbook
 and submission checklist. No public deployment or demo-video recording has been
-performed. Remote CI should be checked independently after the push; this file
-records local results, not an assumed GitHub outcome.
+performed.
+
+The first remote CI run also passed all checks on a GitHub-hosted Linux runner:
+[run 37922401973](https://github.com/Basilmellow/KraxxPayGuard/actions/runs/37922401973),
+commit `a5f70ba`. Deprecation annotations for the initial v4 Actions prompted an
+update to verified v6 commit pins and an explicit Ubuntu 24.04 runner, with
+checkout credentials disabled. Check the latest run after that workflow update.
