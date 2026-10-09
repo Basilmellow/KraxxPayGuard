@@ -1,8 +1,10 @@
 # Astropods container build and deployment
 
 The root Dockerfile fixes the missing-file build failure at 157eb63. It uses
-Node 24.18.0 Debian slim pinned by digest, installs production dependencies only
-(currently none), copies only server/UI/startup files, and runs as UID 1000.
+Node 24.21.0 from a digest-pinned Alpine Node image and a digest-pinned Alpine
+3.24.2 runtime. Production dependencies are installed in a separate build stage
+(currently none); npm/Yarn are absent from the runtime. It copies only required
+server/UI/startup files and runs as UID 1000.
 There are no build secrets or `.env` files in the image. Local `npm start`
 continues to use loopback port 3000 and the existing local environment.
 
@@ -82,7 +84,7 @@ buyer approval and matching capture require separate provider verification.
 
 ## Recorded validation
 
-- Docker build: passed on Docker Desktop Linux amd64, Node v24.18.0.
+- Docker build: passed on Docker Desktop Linux amd64, Node v24.21.0 after image hardening.
 - Container smoke: UID 1000, port 80 reachable through loopback port 3080,
   read-only root filesystem, all capabilities dropped, no-new-privileges.
   Linux unprivileged-port sysctl set to 0 (required to bind 80 without capabilities).
