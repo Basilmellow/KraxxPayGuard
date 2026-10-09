@@ -89,9 +89,9 @@ buyer approval and matching capture require separate provider verification.
   returned identically after restart. No model or PayPal calls were made.
 - Image inspection: no `.env`, Git metadata or Playwright runtime package.
 - `npm run check`, 65 server tests, 10 browser tests: passed.
-- `ast spec validate`: not run; CLI absent from PATH and standard install location.
-  Fields manually checked against current official specification. Install/upgrade
-  the CLI and run validation before publishing the blueprint.
+- `ast spec validate -f astropods.yml`: passed with checksum-verified Astropods
+  CLI `ast/0.28.1 (0311811) BETA`. CLI was downloaded to ignored local artifacts.
+  Publishing and deployment require authenticating the user's Astropods account.
 - Hosted UID/storage permissions, unprivileged-port configuration, HTTPS routing,
   OIDC front door, live model tool compatibility and real Sandbox checkout:
   not tested on Astropods. No deployment or real gateway success is claimed.
