@@ -7,7 +7,8 @@ export function loadConfig(env = process.env) {
   const parsed = new URL(origin);
   requireValue(parsed.origin === origin && !parsed.username && !parsed.password, 500, 'APP_ORIGIN must be an exact origin');
   requireValue(Number.isInteger(port) && port >= 1 && port <= 65535, 500, 'Invalid PORT');
-  requireValue(env.OPERATOR_TOKEN?.length >= 32 && env.SHOPPER_TOKEN?.length >= 32 &&
+  requireValue(/^[A-Za-z0-9_-]{32,256}$/.test(env.OPERATOR_TOKEN || '') &&
+    /^[A-Za-z0-9_-]{32,256}$/.test(env.SHOPPER_TOKEN || '') &&
     env.OPERATOR_TOKEN !== env.SHOPPER_TOKEN, 500, 'Run npm run setup: distinct 32+ character operator/shopper tokens are required');
   if (!['127.0.0.1', '::1', 'localhost'].includes(host))
     requireValue(parsed.protocol === 'https:', 500, 'Remote hosting requires HTTPS APP_ORIGIN');

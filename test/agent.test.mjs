@@ -76,3 +76,18 @@ test('model outage or missing key never silently switches to fixtures', async ()
   assert.equal(failed.agent.mode, 'live');
   assert.ok(!JSON.stringify(failed).includes('secret payload'));
 });
+
+test('stateless model tool round-trip preserves reasoning output without persisting it', async () => {
+  const issued = auth(), reasoning = { type: 'reasoning', id: 'rs_test', summary: [], encrypted_content: 'encrypted-test' };
+  let count = 0;
+  const agent = new Agent({ ...config(), openaiKey: 'test', openaiModel: 'test' }, async (_url, options) => {
+    const request = JSON.parse(options.body);
+    if (++count === 1) return Response.json({ status: 'completed', output: [reasoning,
+      { type: 'function_call', name: 'read_catalog', arguments: '{"productId":"notebook"}', call_id: 'call_test' }] });
+    assert.ok(request.input.some(item => item.type === 'reasoning' && item.encrypted_content === 'encrypted-test'));
+    return call('propose_payment', { ...trustedIntent(issued), rationale: 'Matches consent.' });
+  });
+  const result = await agent.run(issued, 'live');
+  assert.equal(result.evaluation.decision, 'ALLOW');
+  assert.ok(!JSON.stringify(result).includes('encrypted-test'));
+});

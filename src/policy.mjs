@@ -27,6 +27,7 @@ export function issueAuthorization(body, owner, payeeId, now = Date.now()) {
   requireValue(['allow', 'review', 'block'].includes(body.scenario), 400, 'Invalid scenario');
   return Object.freeze({ id: randomUUID(), owner, ...authorization, payeeId,
     productId: body.productId, budgetCents: body.budgetCents,
+    amountCents: catalog[body.productId].amountCents,
     autoLimitCents: body.autoLimitCents, instruction: body.instruction.trim(),
     scenario: body.scenario, createdAt: now, expiresAt: now + 15 * 60 * 1000 });
 }
@@ -54,6 +55,7 @@ export function evaluate(raw, auth = authorization, now = Date.now()) {
   if (currency !== auth.currency) reasons.push('Unauthorized currency');
   if (!product || amountCents !== product.amountCents) reasons.push('Amount or product fails trusted catalog check');
   if (auth.productId && productId !== auth.productId) reasons.push('Item differs from original user authorization');
+  if (auth.amountCents !== undefined && amountCents !== auth.amountCents) reasons.push('Price differs from original user authorization');
   if (auth.expiresAt !== undefined && now >= auth.expiresAt) reasons.push('Original authorization expired');
   if (auth.budgetCents !== undefined && amountCents > auth.budgetCents) reasons.push('Above original authorized budget');
   if (injectionSignals(untrustedContext)) reasons.push('Suspected instruction injection in untrusted content');

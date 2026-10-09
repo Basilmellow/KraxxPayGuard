@@ -15,6 +15,9 @@ export class Payments {
   async run(id, operation) {
     const { item, token } = this.store.claim(id);
     try {
+      const original = this.store.authorization(item.authorizationId);
+      requireValue(original && JSON.stringify(original) === JSON.stringify(item.authorization),
+        403, 'Stored intent differs from immutable original authorization', 'CONSENT_MISMATCH');
       requireValue(item.decision !== 'BLOCK' && item.agent.status === 'COMPLETED' &&
         ['NOT_REQUIRED', 'APPROVED'].includes(item.approval), 403, 'Policy denies payment');
       if (item.payment.status === 'COMPLETED') {

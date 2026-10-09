@@ -69,7 +69,7 @@ export function fixture(productId = 'notebook', scenario = 'allow', path = ':mem
 
 export async function apiFixture(options = {}) {
   const settings = { ...config(), ...options.config }, fake = provider(), store = new Store(':memory:');
-  const server = makeServer({ ...options, config: settings, store, paypalFetch: fake.fetcher });
+  const server = makeServer({ testProviders: true, ...options, config: settings, store, paypalFetch: fake.fetcher });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   settings.origin = `http://127.0.0.1:${server.address().port}`;
   const request = async (path, body, role = 'shopper', extra = {}) => {

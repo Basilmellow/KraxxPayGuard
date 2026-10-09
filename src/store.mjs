@@ -72,6 +72,10 @@ export class Store {
       this.db.prepare('SELECT id FROM intents WHERE owner=? ORDER BY rowid DESC LIMIT 100').all(owner);
     return rows.map(row => this.get(row.id));
   }
+  events() {
+    return this.db.prepare('SELECT seq,intent_id,actor,event,at,details FROM audit ORDER BY seq DESC LIMIT 200')
+      .all().map(event => ({ ...event, details: JSON.parse(event.details) }));
+  }
   reserve(auth, mode) {
     return this.transaction(() => {
       const prior = this.byAuthorization(auth.id);

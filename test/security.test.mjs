@@ -18,6 +18,7 @@ test('immutable original item, price and budget are independent of model', () =>
   assert.equal(evaluate({ ...trustedIntent(auth), productId: 'console', amountCents: 65000 }, auth).decision, 'BLOCK');
   assert.equal(evaluate({ ...trustedIntent(auth), amountCents: 1 }, auth).decision, 'BLOCK');
   assert.equal(evaluate(trustedIntent(auth), { ...auth, budgetCents: 1000 }).decision, 'BLOCK');
+  assert.equal(evaluate(trustedIntent(auth), { ...auth, amountCents: 100 }).decision, 'BLOCK');
   assert.equal(evaluate(trustedIntent(auth), auth, auth.expiresAt).decision, 'BLOCK');
   assert.throws(() => issueAuthorization({ ...consent(), autoLimitCents: 100000 }, 'shopper', 'MERCHANT12345'));
   assert.throws(() => issueAuthorization({ ...consent(), payeeId: 'attacker' }, 'shopper', 'MERCHANT12345'));
@@ -43,7 +44,7 @@ test('authentication, origin, CSRF header and content type enforced', async t =>
     [{ 'Sec-Fetch-Site': 'cross-site' }, 403]]) {
     assert.equal((await f.request(path, consent(), 'shopper', { 'Idempotency-Key': crypto.randomUUID(), ...extra })).status, status);
   }
-  assert.equal(f.store.db.prepare("SELECT COUNT(*) AS n FROM audit WHERE event='SECURITY_REQUEST_DENIED'").get().n, 4);
+  assert.equal(f.store.db.prepare("SELECT COUNT(*) AS n FROM audit WHERE event='SECURITY_REQUEST_DENIED'").get().n, 5);
 });
 
 test('body bounds and invalid JSON reject before consent issuance', async t => {
@@ -107,9 +108,28 @@ test('rate limiting covers failed authentication and returns retry hint', async 
 test('expired authorization and changed merchant config cannot initiate payment', async t => {
   const f = fixture(); t.after(() => f.store.close());
   const expired = f.store.get(f.item.id); expired.authorization.expiresAt = 0; f.store.save(expired);
-  await assert.rejects(f.payments.run(f.item.id, 'checkout'), /expired or policy changed/);
+  await assert.rejects(f.payments.run(f.item.id, 'checkout'), /immutable original authorization/);
   assert.equal(f.fake.state.calls.length, 0);
-  expired.authorization.expiresAt = Date.now() + 100000; f.store.save(expired);
+  expired.authorization = f.auth; f.store.save(expired);
   f.payments.payeeId = 'OTHER1234567';
   await assert.rejects(f.payments.run(f.item.id, 'checkout'), /policy changed/);
+});
+
+test('operator-only security event feed and denial audit flood cap', async t => {
+  const f = await apiFixture(); t.after(() => f.close());
+  assert.equal((await f.request('/api/audit')).status, 403);
+  for (let i = 0; i < 25; i++) await fetch(f.settings.origin + '/api/status');
+  const result = await f.request('/api/audit', undefined, 'operator');
+  assert.equal(result.status, 200);
+  assert.equal(result.body.events.filter(event => event.event === 'SECURITY_REQUEST_DENIED').length, 10);
+  assert.ok(!JSON.stringify(result.body).includes(f.settings.operatorToken));
+});
+
+test('agent quota limits new model work and repeats without duplicating consent', async t => {
+  const f = await apiFixture(); t.after(() => f.close());
+  const issued = await f.request('/api/authorizations', consent(), 'shopper', { 'Idempotency-Key': crypto.randomUUID() });
+  const body = { authorizationId: issued.body.id, mode: 'deterministic' };
+  for (let i = 0; i < 10; i++) assert.ok([200, 201].includes((await f.request('/api/agent/runs', body)).status));
+  assert.equal((await f.request('/api/agent/runs', body)).status, 429);
+  assert.equal(f.store.list('shopper').length, 1);
 });

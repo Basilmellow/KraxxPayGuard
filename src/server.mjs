@@ -25,9 +25,12 @@ export function makeServer(options = {}) {
     payeeId: config.paypalMerchantConfigured ? config.payeeId : '' }, options.paypalFetch);
   const payments = new Payments(store, paypal, config.payeeId);
   const limiter = new RateLimiter(config.rateLimit);
+  const agentLimiter = new RateLimiter(10);
+  const securityAuditLimiter = new RateLimiter(10);
   const server = http.createServer(async (req, res) => {
     let actor;
     try {
+      if (config.origin.startsWith('https:')) res.setHeader('Strict-Transport-Security', 'max-age=31536000');
       const path = new URL(req.url, config.origin).pathname;
       if (path.startsWith('/api/')) {
         limiter.check(`ip:${req.socket.remoteAddress}`);
@@ -37,8 +40,13 @@ export function makeServer(options = {}) {
         if (req.method === 'GET' && path === '/api/status') return send(res, 200, {
           status: 'ok', role: actor.role, paypalConfigured: paypal.configured,
           aiConfigured: agent.configured, model: config.openaiModel || null,
+          providerMode: options.testProviders ? 'MOCK_TEST_FIXTURE' : 'REAL_APIS',
           authorization: { ...authorization, payeeId: config.payeeId }, policyVersion: 'pg-v2' });
         if (req.method === 'GET' && path === '/api/catalog') return send(res, 200, { catalog });
+        if (req.method === 'GET' && path === '/api/audit') {
+          requireValue(actor.role === 'operator', 403, 'Operator access required', 'OPERATOR_REQUIRED');
+          return send(res, 200, { events: store.events() });
+        }
         if (req.method === 'GET' && path === '/api/intents') return send(res, 200, { intents: store.list(actor.id, actor.role === 'operator') });
         if (req.method === 'POST' && path === '/api/authorizations') {
           const body = await readJson(req);
@@ -53,6 +61,7 @@ export function makeServer(options = {}) {
           requireValue(typeof body.authorizationId === 'string' && ['live', 'deterministic'].includes(body.mode), 400, 'Invalid agent request');
           const auth = store.authorization(body.authorizationId);
           owns(auth, actor);
+          agentLimiter.check(actor.id);
           const { item, fresh } = store.reserve(auth, body.mode);
           if (!fresh) return send(res, 200, item);
           const result = await agent.run(auth, body.mode);
@@ -87,8 +96,11 @@ export function makeServer(options = {}) {
       return send(res, 404, { error: 'Not found' });
     } catch (error) {
       const known = error instanceof AppError;
-      if (known && [401, 403, 429].includes(error.status)) {
-        try { store.event(null, actor?.id || 'anonymous', 'SECURITY_REQUEST_DENIED', { code: error.code }); } catch { /* fail closed regardless of audit availability */ }
+      if (known && [400, 401, 403, 413, 415, 429].includes(error.status)) {
+        try {
+          securityAuditLimiter.check(req.socket.remoteAddress);
+          store.event(null, actor?.id || 'anonymous', 'SECURITY_REQUEST_DENIED', { code: error.code });
+        } catch { /* deny regardless; cap audit writes to resist denial floods */ }
       }
       return send(res, known ? error.status : 500, {
         error: known ? error.message : 'Internal request failure; payment denied',
