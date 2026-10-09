@@ -21,6 +21,8 @@ In the deployment configuration, enter:
   Do not invent a hostname, use localhost, or derive authority from request headers.
   If the hostname is only available after provisioning, update this input and
   redeploy the same agent once the hostname is assigned. Startup rejects omission.
+  This input is optional only at the provisioning layer so a first deployment can
+  allocate its hostname; it remains mandatory for application startup.
 - SHOPPER_TOKEN and OPERATOR_TOKEN: distinct random 32+ character values using
   letters, numbers, underscore or hyphen. Use the vault/secret input fields.
 - PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET: separate values from the same

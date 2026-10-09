@@ -12,6 +12,8 @@ agent:
   inputs:
     - name: APP_ORIGIN
       datatype: string
+      # Permit hostname provisioning; application still refuses startup until configured.
+      optional: true
       description: Exact assigned HTTPS frontend origin, without trailing slash or path
     - name: SHOPPER_TOKEN
       datatype: string
