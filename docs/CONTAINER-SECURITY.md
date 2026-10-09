@@ -36,3 +36,9 @@ not a successful payment. No credentials were embedded or printed.
 
 The scan reports and container archives are kept in ignored local artifacts.
 No payment authorization, recipient, currency or firewall behavior was changed.
+
+The hardened image was published as Astropods build `7c2bcc23` and redeployed
+in place. The platform reported active/ready with one app replica and both
+workloads ready. The old build 5a1c8825 retains its historical vulnerability
+report. The new Astropods scanner report has not been retrieved; the zero count
+above is from local Trivy, not a claim about Astropods' independent scan.
