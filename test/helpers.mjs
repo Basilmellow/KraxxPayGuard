@@ -84,5 +84,12 @@ export async function apiFixture(options = {}) {
     return request('/api/agent/runs', { authorizationId: issued.body.id, mode }, role);
   };
   return { settings, fake, store, server, request, run,
-    async close() { await new Promise(resolve => server.close(resolve)); store.close(); } };
+    async close() {
+      await new Promise(resolve => {
+        server.close(resolve);
+        // Browser preconnect sockets can remain open during test fixture replacement.
+        server.closeAllConnections();
+      });
+      store.close();
+    } };
 }

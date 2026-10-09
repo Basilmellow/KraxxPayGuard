@@ -1,7 +1,39 @@
-spec: package/v1
+spec: blueprint/v1
 name: payguard
 
 agent:
   build:
     context: .
     dockerfile: Dockerfile
+  distributed: false
+  interfaces:
+    frontend: true
+    messaging: false
+  inputs:
+    - name: APP_ORIGIN
+      datatype: string
+      description: Exact assigned HTTPS frontend origin, without trailing slash or path
+    - name: SHOPPER_TOKEN
+      datatype: string
+      secret: true
+      description: Random shopper access token, 32 or more characters
+    - name: OPERATOR_TOKEN
+      datatype: string
+      secret: true
+      description: Distinct random operator access token, 32 or more characters
+    - name: PAYPAL_CLIENT_ID
+      datatype: string
+      secret: true
+      description: PayPal Sandbox REST app Client ID
+    - name: PAYPAL_CLIENT_SECRET
+      datatype: string
+      secret: true
+      description: Separate Secret from the same PayPal Sandbox REST app
+    - name: PAYPAL_MERCHANT_ID
+      datatype: string
+      description: Sandbox business account merchant ID
+
+models:
+  default:
+    provider: gateway
+    models: [claude-haiku-4-5]

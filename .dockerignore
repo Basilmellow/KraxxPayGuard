@@ -1,0 +1,27 @@
+# Allow only application build inputs. Everything else, including new private files, is excluded.
+**
+!Dockerfile
+!.dockerignore
+!package.json
+!package-lock.json
+!src/
+!src/**
+!public/
+!public/**
+!scripts/
+!scripts/container-start.mjs
+# Defense in depth inside allowlisted directories.
+**/.env*
+**/.git/**
+**/node_modules/**
+**/*secret*
+**/*credential*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.sqlite*
+**/*.db
+**/*.db-*
+**/*-wal
+**/*-shm
+**/*.log

@@ -32,6 +32,9 @@ Real model mode fails closed if credentials or validated tools are unavailable.
 
 ## Real providers
 
+For the container build, runtime secrets, persistent `/data` storage and hosted
+port 80 routing, see [Astropods deployment](docs/ASTROPODS-DEPLOYMENT.md).
+
 - Use the sponsor **Astropods AI Gateway** with signup credits and no payment
   card. Follow [free setup](docs/FREE-SETUP.md) to configure its gateway credentials.
   Astropods is the default; existing OpenAI keys are ignored. No paid fallback.

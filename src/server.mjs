@@ -115,7 +115,7 @@ export function makeServer(options = {}) {
   return server;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+export function startServer() {
   try {
     const config = loadConfig();
     const server = makeServer({ config });
@@ -129,3 +129,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exitCode = 1;
   }
 }
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) startServer();
