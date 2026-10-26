@@ -18,7 +18,7 @@ payment firewall, database schema or deployment.
 | Original order identity | Earlier GET 200 for both orders; item, amount, currency, merchant and consent/intent references matched | Previously verified |
 | Personal buyer approval | User reported seller-currency rejection; original account pair reportedly India/India | Blocked; actual buyer account type still needs confirmation |
 | Latest original order reinspection | OAuth 200; both GET requests returned 404 with `INVALID_RESOURCE_ID` | Current provider status unavailable; cause not established |
-| Completed capture / reconciliation | No real capture POST attempted; last successful order status was PAYER_ACTION_REQUIRED | Not verified |
+| Original India-profile capture / reconciliation | No capture POST attempted on original orders; last successful order status was PAYER_ACTION_REQUIRED | Not verified |
 | Fresh compatible account pair | Separate Business/Personal credentials and account confirmation requested | Pending |
 
 Latest inspection scanned both local application and original acceptance SQLite
@@ -184,3 +184,71 @@ passed (including 10 acceptance-harness regression tests); **16 Chromium browser
 tests** passed. Real reinspection made one successful OAuth request and two
 unsuccessful GET lookups, with zero create/capture requests. Fresh-profile tests
 remain pending private credentials and human buyer/capture steps.
+
+## Fresh US-profile attempt — capture pending
+
+The supplied new Business REST app credential set was used only from the
+ignored private profile. Isolated run `us-pair-01` was created without touching
+previous attempts. ALLOW ($49 USD) returned OAuth 200, create 200 and GET 200;
+provider status was PAYER_ACTION_REQUIRED. Amount, USD currency, merchant, SKU,
+intent reference and consent reference matched the stored immutable grant.
+No capture POST was made. The buyer approval URL was provided privately to the
+owner, with a separate explicit capture authorization requested after approval.
+
+BLOCK was then tested in that same run/profile: checkout and capture were both
+denied by the unchanged payment service, with zero provider requests and no
+order created. REVIEW has not yet been prepared, to avoid consuming its consent
+window while the ALLOW acceptance step is pending. Completed real capture and
+provider-backed duplicate reconciliation remain unverified.
+
+Subsequent read-only GET returned HTTP 200 and **APPROVED** for the fresh ALLOW
+order after the user completed PayPal checkout. All authorized order fields
+matched and local records were unchanged. The localhost return-page connection
+refusal was separate from provider approval. Original consent was still valid
+at inspection. At that stage no capture request had been sent; explicit capture authorization
+was requested as required by the acceptance task.
+
+The user then explicitly authorized the $49 Sandbox capture. The original
+consent was unexpired, the preflight and payment service GETs both passed, and
+exactly one capture POST returned HTTP **201**. Subsequent GET returned order
+status **COMPLETED**, but its single capture was **PENDING**, with reason
+**UNILATERAL**. Capture ID format, final-capture flag, amount and currency match;
+the payment is **not a verified completed capture**. The existing strict verifier
+correctly rejected completion with `CAPTURE_MISMATCH`. Local status remains
+CAPTURING, with its original order/create/capture request identifiers and audit.
+No second capture or replacement order was submitted. Full provider evidence,
+including the pending capture ID, is preserved only in the ignored run files.
+
+GET-only reinspection confirmed the same pending reason, with no local record
+changes. The inspector now reports capture status/reason separately from order
+status and keeps provider capture IDs out of console output. This reporting
+change does not weaken the application verifier or alter payment state.
+
+PayPal's [capture status reference](https://developer.paypal.com/api/payments/v2/definitions/capture_status/)
+lists PENDING and UNILATERAL as provider status/reason values. Older PayPal
+[technical guidance](https://www.paypalobjects.com/webstatic/en_US/developer/docs/pdf/pp_adaptivepaymentsmobile.pdf)
+associates UNILATERAL with an unregistered or unconfirmed recipient email. That
+older API explanation is a troubleshooting lead, not proof of this account's
+exact configuration. The owner was asked to inspect the new Business account's
+primary email confirmation and pending/unclaimed Activity, preserving the same
+account, order and credentials. Do not capture again while this is pending.
+After the provider reports the existing capture COMPLETED, reconcile its same
+ID from GET evidence; do not bypass expiry or initiate another payment.
+
+GitHub CI for acceptance-harness commit `71fb849` passed:
+[run 40349345197](https://github.com/Basilmellow/KraxxPayGuard/actions/runs/40349345197).
+The hosted application has not been rebuilt or redeployed.
+
+The owner subsequently confirmed the $49 payment appears **unclaimed** in the
+new seller account. This corroborates pending receipt, not completed capture.
+The next seller-side action is to open the existing payment and follow any
+Accept/Claim or primary-email confirmation prompt. Sandbox messages are viewed
+in Developer Dashboard / Sandbox Notifications, not assumed to reach a real
+mailbox; see [PayPal notification guidance](https://developer.paypal.com/sandbox-testing/calls/)
+and [pending/unclaimed help](https://www.paypal.com/us/cshelp/article/why-is-the-payment-i-sent-pending-or-unclaimed-can-i-cancel-it-help111).
+Do not cancel, replace or recapture the existing payment to simplify acceptance.
+
+The diagnostic change passed syntax checks, **100 server/security tests**
+(including the pending UNILATERAL regression), and **16 browser tests** locally.
+Actual completed capture, real duplicate reconciliation and fresh REVIEW
+acceptance remain pending. No deployment was performed.

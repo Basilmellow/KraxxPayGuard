@@ -189,6 +189,16 @@ export async function acceptanceMain(args, { root = process.cwd(), env = process
         const order = await paypal.show(item.payment.orderId);
         verifyOrder(order, item, ['CREATED', 'PAYER_ACTION_REQUIRED', 'APPROVED', 'COMPLETED', 'VOIDED']);
         result.providerStatus = order.status; result.orderFieldsVerified = true;
+        // Order COMPLETED is not capture COMPLETED. Keep pending capture evidence
+        // separate from the verified local capture ID; never mutate it on inspection.
+        result.providerCaptures = (order.purchase_units[0].payments?.captures || []).map(c => ({
+          captureId: /^[A-Z0-9]{8,32}$/.test(c.id || '') ? c.id : null,
+          status: ['COMPLETED', 'DECLINED', 'PARTIALLY_REFUNDED', 'PENDING', 'REFUNDED', 'FAILED'].includes(c.status) ? c.status : 'UNKNOWN',
+          reason: /^[A-Z_]{1,80}$/.test(c.status_details?.reason || '') ? c.status_details.reason : null,
+          finalCapture: c.final_capture === true,
+          amountMatches: c.amount?.value === (item.intent.amountCents / 100).toFixed(2),
+          currencyMatches: c.amount?.currency_code === item.intent.currency,
+        }));
         if (order.status === 'COMPLETED') { result.captureId = verifyCapture(order, item); result.captureVerified = true; }
       } catch (error) { result.error = error.code || 'PROVIDER_UNAVAILABLE'; }
     }
@@ -201,8 +211,9 @@ export async function acceptanceMain(args, { root = process.cwd(), env = process
   log(JSON.stringify({ evidencePath, operation: o.operation, observations,
     error: report.error, blocker: report.blocker, duplicateCaptureVerified: report.duplicateCaptureVerified,
     databases: report.databases.map(d => ({ path: d.path, error: d.error, recordsUnchangedDuringInspection: d.recordsUnchangedDuringInspection,
-      cases: d.cases?.map(({ scenario, decision, payment, providerStatus, orderFieldsVerified, captureVerified, error }) =>
-        ({ scenario, decision, payment, providerStatus, orderFieldsVerified, captureVerified, error })) })) }));
+      cases: d.cases?.map(({ scenario, decision, payment, providerStatus, orderFieldsVerified, captureVerified, providerCaptures, error }) =>
+        ({ scenario, decision, payment, providerStatus, orderFieldsVerified, captureVerified,
+          providerCaptures: providerCaptures?.map(({ captureId, ...safe }) => safe), error })) })) }));
   return report;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

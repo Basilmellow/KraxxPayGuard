@@ -160,3 +160,37 @@ test('lost capture is reconciled from verified completed GET with the original o
   assert.ok(result.item.audit.some(e => e.event === 'PAYPAL_CAPTURE_RECONCILED'));
   assert.equal(f.fake.state.calls.filter(c => c.url.endsWith('/capture')).length, 1);
 });
+
+test('GET inspection distinguishes COMPLETED order from PENDING UNILATERAL capture without changing uncertain records', async t => {
+  const root = temporary(t), path = join(root, 'data', 'payguard.sqlite');
+  const f = fixture('notebook', 'allow', path);
+  await f.payments.run(f.item.id, 'checkout'); f.fake.state.approved = true;
+  f.fake.state.tamper = order => {
+    if (order.status === 'COMPLETED') {
+      order.purchase_units[0].payments.captures[0].status = 'PENDING';
+      order.purchase_units[0].payments.captures[0].status_details = { reason: 'UNILATERAL' };
+    }
+  };
+  await assert.rejects(f.payments.run(f.item.id, 'capture'), error => error.code === 'CAPTURE_MISMATCH');
+  f.store.close();
+  const before = readSnapshot(path), logs = [];
+  f.fake.state.calls.length = 0;
+  const report = await acceptanceMain(['inspect'], { root, env: {
+    SHOPPER_TOKEN: 's'.repeat(64), OPERATOR_TOKEN: 'o'.repeat(64), PAYPAL_CLIENT_ID: f.settings.paypalClientId,
+    PAYPAL_CLIENT_SECRET: f.settings.paypalClientSecret, PAYPAL_MERCHANT_ID: f.settings.payeeId,
+  }, fetcher: f.fake.fetcher, log: value => logs.push(value) });
+  const item = report.databases[0].cases[0];
+  assert.equal(item.providerStatus, 'COMPLETED');
+  assert.equal(item.captureVerified, false);
+  assert.equal(item.payment, 'CAPTURING');
+  assert.equal(item.error, 'CAPTURE_MISMATCH');
+  assert.equal(item.providerCaptures[0].status, 'PENDING');
+  assert.equal(item.providerCaptures[0].reason, 'UNILATERAL');
+  assert.equal(item.providerCaptures[0].captureId, 'CAPTURE12345');
+  assert.equal(item.providerCaptures[0].amountMatches, true);
+  assert.equal(item.providerCaptures[0].currencyMatches, true);
+  assert.ok(logs.join('').includes('UNILATERAL'));
+  assert.ok(!logs.join('').includes('CAPTURE12345'));
+  assert.ok(f.fake.state.calls.every(c => c.method === 'GET' || c.url.endsWith('/oauth2/token')));
+  assert.deepEqual(readSnapshot(path), before);
+});
