@@ -320,3 +320,46 @@ The original run was inspected with its preserved credential archive and still
 reported PENDING / UNILATERAL, with unchanged SQLite records. New app credentials
 do not settle that existing pending capture. The next gate is recipient identity
 and confirmation/claim evidence, not another capture or replacement order.
+
+The owner reports that the linked US Business account's merchant ID matches the
+profile and its primary email is confirmed. The supplied transaction screenshot
+still shows a buyer-side outgoing "Purchase from" row with Cancel/Archive,
+not verified recipient-side incoming payment evidence. A subsequent original-
+profile GET still returned PENDING / UNILATERAL, with local records unchanged.
+The next receiving check must use the US Business Sandbox login in a separate
+browser session and inspect its incoming Activity. Do not infer successful
+receipt from the buyer's completed funding-card withdrawal row.
+
+The owner corrected the earlier email-status report: the US Business recipient
+email is **unconfirmed**. After requesting Sandbox confirmation messages, the
+confirmation page reports: "We couldn't confirm your email address. Try again
+from the email address we sent you. Go to your account". This is an email-
+confirmation failure, not the separate "couldn't confirm it's you" identity
+message. No completed payment is inferred. The owner was advised to use only
+the newest Sandbox notification in the correct recipient session; if that fails,
+escalate the existing account/payment to PayPal Merchant Technical Support.
+PayPal staff have documented manual Sandbox email confirmation in prior support
+cases; this is an escalation option, not a guarantee of present availability.
+A private, unsubmitted support draft was prepared under the ignored run
+directory with the existing merchant/order/pending capture identifiers and no
+passwords, secrets, access tokens or confirmation links. No message was sent,
+no account was replaced, and no additional payment operation was performed.
+
+The owner subsequently reports primary email verification succeeded, but the
+transaction remains unclaimed with no claim option. Order GET still returned
+PENDING / UNILATERAL for the single capture. To rule out a stale order projection,
+GET `/v2/payments/captures/{existing_capture_id}` was also read directly: original
+app OAuth 200 and capture GET 200, with PENDING / UNILATERAL, matching capture ID,
+49.00 USD and final-capture flag. New US seller app OAuth returned 200, but that
+app's GET of this old capture returned HTTP 401 / PERMISSION_DENIED. Both probes
+were read-only apart from OAuth; neither created or captured a payment. New-app
+access denial does not prove a wrong secret or the exact cause of pending
+receipt. Preserve the original app/profile for this capture's inspection.
+
+A new private, unsubmitted support draft records email verification as now
+reported complete and includes the direct-GET debug identifiers, existing
+merchant/order/capture identifiers and mixed-app history. It asks PayPal MTS to
+investigate and advise resolution of the existing pending capture without a
+duplicate or replacement payment. No further repeated confirmation attempts
+are being prescribed. Completed capture and provider-backed duplicate
+reconciliation remain unverified. The deterministic verifier is unchanged.
