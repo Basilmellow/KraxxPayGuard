@@ -6,6 +6,12 @@ Hosted release `e420da3d` / application commit `0b30355` stays unchanged while
 acceptance is pending. The acceptance harness changes do not change the app,
 payment firewall, database schema or deployment.
 
+**Latest finding:** the attempted fresh profile mixes a new recipient merchant
+ID with the original REST client credentials. The actual buyer country was IN,
+not a confirmed US Personal test buyer. Buyer approval succeeded, but the single
+authorized capture remains PENDING / UNILATERAL. A compatible, correctly
+associated Business/Personal pair has not yet been demonstrated.
+
 ## Provider observations
 
 | Boundary | Observed evidence | Status |
@@ -185,10 +191,12 @@ tests** passed. Real reinspection made one successful OAuth request and two
 unsuccessful GET lookups, with zero create/capture requests. Fresh-profile tests
 remain pending private credentials and human buyer/capture steps.
 
-## Fresh US-profile attempt — capture pending
+## Attempted US-recipient profile — capture pending
 
-The supplied new Business REST app credential set was used only from the
-ignored private profile. Isolated run `us-pair-01` was created without touching
+The supplied credential set was used only from the ignored private profile;
+later inspection established it reused the original REST client ID with a new
+recipient merchant ID, rather than a verified new seller-app credential pair.
+Isolated run `us-pair-01` was created without touching
 previous attempts. ALLOW ($49 USD) returned OAuth 200, create 200 and GET 200;
 provider status was PAYER_ACTION_REQUIRED. Amount, USD currency, merchant, SKU,
 intent reference and consent reference matched the stored immutable grant.
@@ -239,8 +247,10 @@ GitHub CI for acceptance-harness commit `71fb849` passed:
 [run 40349345197](https://github.com/Basilmellow/KraxxPayGuard/actions/runs/40349345197).
 The hosted application has not been rebuilt or redeployed.
 
-The owner subsequently confirmed the $49 payment appears **unclaimed** in the
-new seller account. This corroborates pending receipt, not completed capture.
+The owner initially reported the $49 payment as **unclaimed**, then clarified
+that the visible row was "Purchase from" in the other Sandbox account, which is
+the buyer-side outgoing payment view. This did not verify the new seller's
+receiving dashboard. It corroborates pending receipt, not completed capture.
 The next seller-side action is to open the existing payment and follow any
 Accept/Claim or primary-email confirmation prompt. Sandbox messages are viewed
 in Developer Dashboard / Sandbox Notifications, not assumed to reach a real
@@ -252,3 +262,61 @@ The diagnostic change passed syntax checks, **100 server/security tests**
 (including the pending UNILATERAL regression), and **16 browser tests** locally.
 Actual completed capture, real duplicate reconciliation and fresh REVIEW
 acceptance remain pending. No deployment was performed.
+
+Further read-only inspection confirmed the actual buyer country **IN**, the
+original and supplied REST client IDs are equal, and the new recipient merchant
+ID differs from the original profile. The order's payee merchant ID matches the
+supplied profile; its payee email is absent, so an email-to-merchant association
+must not be inferred from this API response. The owner identified the REST app
+as belonging to the other Sandbox account. This is an incomplete/mixed account
+setup, not evidence that a matched US Business/Personal baseline was tested.
+It also does not prove the cause of the original India-to-India currency error.
+
+The run's original credentials were preserved privately under its ignored
+directory before requesting future profile changes. That preserved profile
+still matches the run binding; subsequent GET inspection returned the same
+PENDING / UNILATERAL capture with all SQLite records unchanged. Do not change
+the existing run's binding or replace its order/request IDs. Use the preserved
+original credential profile for its inspections, even after another app is
+configured for future work. No new create or capture was submitted.
+
+The existing developer login may manage a separate US Sandbox Business account.
+If that test account was created directly on the Sandbox site, follow PayPal's
+[link an existing Sandbox account instructions](https://developer.paypal.com/sandbox-testing/accounts/)
+to make it visible in the developer dashboard (an account already linked to a
+different developer account cannot be linked again there). Confirm Business/US
+type and country, inspect that recipient's email and unclaimed payment, then
+create/select a Sandbox REST app explicitly associated with that Business
+account. A separate US Personal buyer must also be confirmed before a future
+compatible-pair test. Merely using the developer login's email is not an app
+ownership check. Resolve/reconcile the existing pending capture before any
+replacement payment is considered.
+
+The pending-capture diagnostic commit `bd12169` also passed
+[GitHub CI run 40353725477](https://github.com/Basilmellow/KraxxPayGuard/actions/runs/40353725477).
+
+The owner linked the US recipient into the existing developer dashboard and
+provided a screenshot showing **Business / US / 0 apps**. The other displayed
+Business and Personal accounts were IN. This confirms the linked recipient's
+account type/country and that no REST app was listed for it at that point; it
+does not establish primary-email confirmation or successful payment receipt.
+GET-only reinspection after linking still returned the same PENDING / UNILATERAL
+capture. Local records and original request IDs remained unchanged. Next steps:
+create a Sandbox REST app explicitly selecting the linked US Business account,
+verify its recipient merchant ID against that linked account, and inspect its
+email confirmation/receiving prompts for the existing $49 payment. Preserve the
+original credential archive for the pending run; do not recapture or replace it.
+
+After the owner reported saving the new app credentials, private validation
+confirmed all three profile fields are present, the REST client ID changed and
+the recipient merchant ID stayed unchanged. A Sandbox **OAuth-only** request
+with the updated app returned HTTP 200 and an access token (never logged). No
+order was created or captured with this updated app. This verifies credential
+authentication, not that the configured merchant ID belongs to that app's
+seller; the owner was asked to cross-check the linked US Sandbox Business
+account's own merchant ID and email/claim status.
+
+The original run was inspected with its preserved credential archive and still
+reported PENDING / UNILATERAL, with unchanged SQLite records. New app credentials
+do not settle that existing pending capture. The next gate is recipient identity
+and confirmation/claim evidence, not another capture or replacement order.
