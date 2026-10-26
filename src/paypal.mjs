@@ -10,7 +10,7 @@ export function verifyOrder(order, item, statuses) {
   requireValue(ID.test(order.id || '') && (!item.payment.orderId || order.id === item.payment.orderId) &&
     order.intent === 'CAPTURE' && statuses.includes(order.status) && Array.isArray(units) && units.length === 1 &&
     unit.reference_id === item.id && unit.custom_id === item.authorizationId &&
-    unit.payee?.merchant_id === item.authorization.payeeId &&
+    unit.payee?.merchant_id === item.intent.payeeId &&
     unit.amount?.currency_code === item.authorization.currency &&
     unit.amount?.value === money(item.intent.amountCents) &&
     unit.items?.length === 1 && unit.items[0].sku === item.intent.productId &&
@@ -91,7 +91,7 @@ export class PayPal {
         user_action: 'PAY_NOW', shipping_preference: 'NO_SHIPPING',
         return_url: `${this.config.origin}/?paypal=return`, cancel_url: `${this.config.origin}/?paypal=cancel`,
       } } }, purchase_units: [{ reference_id: item.id, custom_id: item.authorizationId,
-        payee: { merchant_id: item.authorization.payeeId }, description: item.product.label,
+        payee: { merchant_id: item.intent.payeeId }, description: item.product.label,
         amount: { ...amount, breakdown: { item_total: amount } },
         items: [{ name: item.product.label, sku: item.intent.productId, quantity: '1', unit_amount: amount }] }]
       } });

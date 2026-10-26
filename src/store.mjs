@@ -76,13 +76,17 @@ export class Store {
     return this.db.prepare('SELECT seq,intent_id,actor,event,at,details FROM audit ORDER BY seq DESC LIMIT 200')
       .all().map(event => ({ ...event, details: JSON.parse(event.details) }));
   }
-  reserve(auth, mode) {
+  reserve(auth, mode, lab = null) {
     return this.transaction(() => {
       const prior = this.byAuthorization(auth.id);
-      if (prior) return { item: prior, fresh: false };
+      if (prior) {
+        requireValue(prior.agent.mode === mode && JSON.stringify(prior.lab || null) === JSON.stringify(lab),
+          409, 'Consent already used with different agent or merchant test input');
+        return { item: prior, fresh: false };
+      }
       requireValue(Date.now() < auth.expiresAt, 403, 'Original authorization expired');
       const item = { id: randomUUID(), authorizationId: auth.id, owner: auth.owner,
-        createdAt: new Date().toISOString(), authorization: auth, agent: { mode, status: 'RUNNING' },
+        createdAt: new Date().toISOString(), authorization: auth, lab, agent: { mode, status: 'RUNNING' },
         decision: 'BLOCK', reasons: ['Agent evaluation pending; payment denied'],
         approval: 'NOT_REQUIRED', payment: { status: 'NOT_CREATED',
           createRequestId: randomUUID(), captureRequestId: randomUUID() } };

@@ -4,16 +4,18 @@ import { verifyOrder, verifyCapture, approvalLink } from './paypal.mjs';
 
 const RETRY_WINDOW = 5 * 60 * 60 * 1000;
 export class Payments {
-  constructor(store, paypal, payeeId) { Object.assign(this, { store, paypal, payeeId }); }
+  constructor(store, paypal, payeeId, providers) { Object.assign(this, { store, paypal, payeeId, providers }); }
   eligible(item, now = Date.now()) {
     requireValue(item.agent.status === 'COMPLETED' && item.decision !== 'BLOCK' &&
       ['NOT_REQUIRED', 'APPROVED'].includes(item.approval), 403, 'Policy denies payment');
     const current = evaluate(item.intent, item.authorization, now);
     requireValue(current.decision === item.decision && current.decision !== 'BLOCK' &&
-      item.authorization.payeeId === this.payeeId, 403, 'Authorization expired or policy changed');
+      item.intent.payeeId === (typeof this.payeeId === 'string' ? this.payeeId : this.payeeId[item.intent.merchantId]),
+    403, 'Authorization expired or policy changed');
   }
   async run(id, operation) {
     const { item, token } = this.store.claim(id);
+    const paypal = this.providers ? this.providers[item.intent?.merchantId] : this.paypal;
     try {
       const original = this.store.authorization(item.authorizationId);
       requireValue(original && JSON.stringify(original) === JSON.stringify(item.authorization),
@@ -24,7 +26,7 @@ export class Payments {
         this.store.checkpoint(item, token, null, {}, true);
         return this.store.get(id);
       }
-      requireValue(this.paypal.configured, 503, 'PayPal Sandbox credentials and merchant ID are required', 'PAYPAL_NOT_CONFIGURED');
+      requireValue(paypal?.configured, 503, 'Matching Sandbox credentials for this merchant are required', 'PAYPAL_NOT_CONFIGURED');
       if (operation === 'checkout') {
         if (item.payment.orderId) {
           this.store.checkpoint(item, token, null, {}, true);
@@ -36,7 +38,7 @@ export class Payments {
         item.payment.createStartedAt ||= Date.now();
         item.payment.status = 'CREATING';
         this.store.checkpoint(item, token, 'PAYPAL_CREATE_REQUESTED');
-        const order = await this.paypal.create(item);
+        const order = await paypal.create(item);
         verifyOrder(order, item, ['CREATED', 'PAYER_ACTION_REQUIRED', 'APPROVED', 'COMPLETED']);
         item.payment.orderId = order.id;
         if (order.status === 'COMPLETED') {
@@ -52,7 +54,7 @@ export class Payments {
       requireValue(item.payment.orderId, 409, 'No PayPal order to capture');
       // Reconcile before expiry checks: a lost prior capture response can be
       // resolved without initiating another payment after authorization expiry.
-      const order = await this.paypal.show(item.payment.orderId);
+      const order = await paypal.show(item.payment.orderId);
       verifyOrder(order, item, ['APPROVED', 'COMPLETED', 'CREATED', 'PAYER_ACTION_REQUIRED']);
       if (order.status === 'COMPLETED') {
         item.payment.captureId = verifyCapture(order, item);
@@ -67,12 +69,12 @@ export class Payments {
       item.payment.captureStartedAt ||= Date.now();
       item.payment.status = 'CAPTURING';
       this.store.checkpoint(item, token, 'PAYPAL_CAPTURE_REQUESTED');
-      const response = await this.paypal.capture(item);
+      const response = await paypal.capture(item);
       requireValue(response.id === item.payment.orderId && response.status === 'COMPLETED',
         409, 'PayPal capture not confirmed', 'CAPTURE_UNCONFIRMED');
       // Capture responses can omit order fields; fetch the complete order for
       // recipient/item verification and recorded completed capture evidence.
-      const captured = await this.paypal.show(item.payment.orderId);
+      const captured = await paypal.show(item.payment.orderId);
       item.payment.captureId = verifyCapture(captured, item);
       item.payment.status = 'COMPLETED';
       this.store.checkpoint(item, token, 'PAYPAL_CAPTURE_VERIFIED', { captureId: item.payment.captureId }, true);

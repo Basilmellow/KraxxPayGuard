@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { catalog, authorization, issueAuthorization } from './policy.mjs';
+import { catalog, merchants, merchantPayees, authorization, issueAuthorization, POLICY_VERSION } from './policy.mjs';
 import { Store } from './store.mjs';
 import { Agent } from './agent.mjs';
 import { PayPal } from './paypal.mjs';
@@ -9,6 +9,7 @@ import { Payments } from './payments.mjs';
 import { loadConfig } from './config.mjs';
 import { headers, authenticate, mutationGuard, readJson, RateLimiter } from './security.mjs';
 import { AppError, requireValue, exactObject } from './errors.mjs';
+import { normalizeLab, publicPresets } from './lab.mjs';
 
 const send = (res, status, payload) => {
   res.writeHead(status, { ...headers, 'Content-Type': 'application/json; charset=utf-8',
@@ -23,7 +24,10 @@ export function makeServer(options = {}) {
   const agent = options.agent || new Agent(config, options.modelFetch);
   const paypal = options.paypal || new PayPal({ ...config,
     payeeId: config.paypalMerchantConfigured ? config.payeeId : '' }, options.paypalFetch);
-  const payments = new Payments(store, paypal, config.payeeId);
+  const payees = merchantPayees(config);
+  const providers = { 'kraxx-demo-store': paypal,
+    'kraxx-lab-supply': new PayPal(config.secondaryPayPal || {}, options.secondaryPaypalFetch) };
+  const payments = new Payments(store, paypal, payees, providers);
   const limiter = new RateLimiter(config.rateLimit);
   const agentLimiter = new RateLimiter(10);
   const securityAuditLimiter = new RateLimiter(10);
@@ -41,8 +45,10 @@ export function makeServer(options = {}) {
           status: 'ok', role: actor.role, paypalConfigured: paypal.configured,
           aiConfigured: agent.configured, model: config.openaiModel || null,
           providerMode: options.testProviders ? 'MOCK_TEST_FIXTURE' : 'REAL_APIS',
-          authorization: { ...authorization, payeeId: config.payeeId }, policyVersion: 'pg-v2' });
-        if (req.method === 'GET' && path === '/api/catalog') return send(res, 200, { catalog });
+          authorization: { ...authorization, payeeId: config.payeeId }, policyVersion: POLICY_VERSION,
+          merchants: Object.fromEntries(Object.entries(merchants).map(([id, label]) => [id, { label, payeeId: payees[id], checkoutConfigured: providers[id].configured }])) });
+        if (req.method === 'GET' && path === '/api/catalog') return send(res, 200, { catalog, merchants });
+        if (req.method === 'GET' && path === '/api/lab/presets') return send(res, 200, { presets: publicPresets() });
         if (req.method === 'GET' && path === '/api/audit') {
           requireValue(actor.role === 'operator', 403, 'Operator access required', 'OPERATOR_REQUIRED');
           return send(res, 200, { events: store.events() });
@@ -52,19 +58,20 @@ export function makeServer(options = {}) {
           const body = await readJson(req);
           const key = req.headers['idempotency-key'];
           requireValue(typeof key === 'string' && /^[a-zA-Z0-9-]{16,80}$/.test(key), 400, 'Idempotency-Key required');
-          const auth = issueAuthorization(body, actor.id, config.payeeId);
+          const auth = issueAuthorization(body, actor.id, payees);
           return send(res, 201, store.issue(auth, key, JSON.stringify(body)));
         }
         if (req.method === 'POST' && path === '/api/agent/runs') {
           const body = await readJson(req);
-          exactObject(body, ['authorizationId', 'mode']);
+          exactObject(body, ['authorizationId', 'mode', 'lab']);
           requireValue(typeof body.authorizationId === 'string' && ['live', 'deterministic'].includes(body.mode), 400, 'Invalid agent request');
           const auth = store.authorization(body.authorizationId);
           owns(auth, actor);
           agentLimiter.check(actor.id);
-          const { item, fresh } = store.reserve(auth, body.mode);
+          const lab = normalizeLab(body.lab);
+          const { item, fresh } = store.reserve(auth, body.mode, lab);
           if (!fresh) return send(res, 200, item);
-          const result = await agent.run(auth, body.mode);
+          const result = await agent.run(auth, body.mode, lab);
           return send(res, 201, store.finishAgent(item, result.evaluation, result.agent));
         }
         const match = path.match(/^\/api\/intents\/([a-f0-9-]{36})(?:\/(review|checkout|capture))?$/);

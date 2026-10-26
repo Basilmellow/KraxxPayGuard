@@ -1,10 +1,13 @@
 import { requireValue } from './errors.mjs';
 
 export function loadConfig(env = process.env) {
+  const parseOrigin = (value, label) => {
+    try { return new URL(value); } catch { requireValue(false, 500, `${label} must be a valid exact origin`); }
+  };
   const host = env.HOST || '127.0.0.1';
   const port = Number(env.PORT || 3000);
   const origin = env.APP_ORIGIN || `http://127.0.0.1:${port}`;
-  const parsed = new URL(origin);
+  const parsed = parseOrigin(origin, 'APP_ORIGIN');
   requireValue(parsed.origin === origin && !parsed.username && !parsed.password, 500, 'APP_ORIGIN must be an exact origin');
   requireValue(Number.isInteger(port) && port >= 1 && port <= 65535, 500, 'Invalid PORT');
   requireValue(/^[A-Za-z0-9_-]{32,256}$/.test(env.OPERATOR_TOKEN || '') &&
@@ -18,11 +21,16 @@ export function loadConfig(env = process.env) {
   requireValue(['astropods', 'openai'].includes(modelProvider), 500, 'Invalid MODEL_PROVIDER');
   const gatewayUrl = env.ASTRO_GATEWAY_URL || '';
   if (gatewayUrl) {
-    const gateway = new URL(gatewayUrl);
+    const gateway = parseOrigin(gatewayUrl, 'ASTRO_GATEWAY_URL');
     requireValue(gateway.protocol === 'https:' && gateway.origin === gatewayUrl && !gateway.username && !gateway.password,
       500, 'ASTRO_GATEWAY_URL must be an exact HTTPS origin from Astropods');
   }
+  const secondaryPayee = env.PAYPAL_SECONDARY_MERCHANT_ID || 'unconfigured-lab-merchant';
+  if (env.PAYPAL_SECONDARY_MERCHANT_ID) requireValue(/^[A-Z0-9]{8,32}$/.test(secondaryPayee), 500, 'Invalid secondary Sandbox merchant ID');
   return { host, port, origin, operatorToken: env.OPERATOR_TOKEN, shopperToken: env.SHOPPER_TOKEN,
+    merchantPayees: { 'kraxx-demo-store': payeeId, 'kraxx-lab-supply': secondaryPayee },
+    secondaryPayPal: { origin, payeeId: env.PAYPAL_SECONDARY_MERCHANT_ID || '',
+      paypalClientId: env.PAYPAL_SECONDARY_CLIENT_ID || '', paypalClientSecret: env.PAYPAL_SECONDARY_CLIENT_SECRET || '' },
     dbPath: env.DATABASE_PATH || 'data/payguard.sqlite', payeeId,
     paypalClientId: env.PAYPAL_CLIENT_ID || '', paypalClientSecret: env.PAYPAL_CLIENT_SECRET || '',
     paypalMerchantConfigured: !!env.PAYPAL_MERCHANT_ID,
