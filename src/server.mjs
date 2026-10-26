@@ -10,6 +10,8 @@ import { loadConfig } from './config.mjs';
 import { headers, authenticate, mutationGuard, readJson, RateLimiter } from './security.mjs';
 import { AppError, requireValue, exactObject } from './errors.mjs';
 import { normalizeLab, publicPresets } from './lab.mjs';
+import { decisionEvidence } from './evidence.mjs';
+import { evaluateAttacks, judgeFixtures } from './evaluation.mjs';
 
 const send = (res, status, payload) => {
   res.writeHead(status, { ...headers, 'Content-Type': 'application/json; charset=utf-8',
@@ -36,6 +38,12 @@ export function makeServer(options = {}) {
     try {
       if (config.origin.startsWith('https:')) res.setHeader('Strict-Transport-Security', 'max-age=31536000');
       const path = new URL(req.url, config.origin).pathname;
+      if (req.method === 'GET' && path === '/api/judge/demo') {
+        limiter.check(`judge:${req.socket.remoteAddress}`);
+        return send(res, 200, { source: 'JUDGE_FIXTURE', paymentExecution: false, modelCalls: 0,
+          fixtures: judgeFixtures().map(item => ({ ...item, evidence: decisionEvidence(item, 'JUDGE_FIXTURE') })), evaluation: evaluateAttacks() });
+      }
+      if (options.judgeOnly && path.startsWith('/api/')) return send(res, 404, { error: 'Read-only judge mode; authenticated APIs are unavailable' });
       if (path.startsWith('/api/')) {
         limiter.check(`ip:${req.socket.remoteAddress}`);
         actor = authenticate(req, config);
@@ -49,6 +57,7 @@ export function makeServer(options = {}) {
           merchants: Object.fromEntries(Object.entries(merchants).map(([id, label]) => [id, { label, payeeId: payees[id], checkoutConfigured: providers[id].configured }])) });
         if (req.method === 'GET' && path === '/api/catalog') return send(res, 200, { catalog, merchants });
         if (req.method === 'GET' && path === '/api/lab/presets') return send(res, 200, { presets: publicPresets() });
+        if (req.method === 'GET' && path === '/api/lab/evaluation') return send(res, 200, evaluateAttacks());
         if (req.method === 'GET' && path === '/api/audit') {
           requireValue(actor.role === 'operator', 403, 'Operator access required', 'OPERATOR_REQUIRED');
           return send(res, 200, { events: store.events() });
@@ -74,12 +83,15 @@ export function makeServer(options = {}) {
           const result = await agent.run(auth, body.mode, lab);
           return send(res, 201, store.finishAgent(item, result.evaluation, result.agent));
         }
-        const match = path.match(/^\/api\/intents\/([a-f0-9-]{36})(?:\/(review|checkout|capture))?$/);
+        const match = path.match(/^\/api\/intents\/([a-f0-9-]{36})(?:\/(review|checkout|capture|evidence))?$/);
         if (match) {
           const item = store.get(match[1]);
           owns(item, actor);
           if (req.method === 'GET' && !match[2]) return send(res, 200, item);
+          if (req.method === 'GET' && match[2] === 'evidence') return send(res, 200,
+            decisionEvidence(item, options.testProviders ? 'MOCK_TEST_FIXTURE' : 'REAL_APIS'));
           if (req.method === 'POST' && match[2]) {
+            requireValue(match[2] !== 'evidence', 405, 'Evidence reports are read-only');
             const body = await readJson(req);
             if (match[2] === 'review') {
               requireValue(actor.role === 'operator', 403, 'Operator access required', 'OPERATOR_REQUIRED');
@@ -93,8 +105,8 @@ export function makeServer(options = {}) {
         }
         return send(res, 404, { error: 'Not found' });
       }
-      if (req.method === 'GET' && ['/', '/app.js', '/style.css'].includes(path)) {
-        const name = path === '/' ? 'index.html' : path.slice(1);
+      if (req.method === 'GET' && ['/', '/judge', '/app.js', '/style.css'].includes(path)) {
+        const name = ['/', '/judge'].includes(path) ? 'index.html' : path.slice(1);
         const content = await readFile(new URL(`../public/${name}`, import.meta.url));
         res.writeHead(200, { ...headers, 'Content-Type': name.endsWith('.js') ? 'text/javascript; charset=utf-8' :
           name.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8' });

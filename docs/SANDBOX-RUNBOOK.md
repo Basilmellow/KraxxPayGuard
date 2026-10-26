@@ -1,6 +1,8 @@
 # Credentialed acceptance runbook
 
-These steps require your accounts. No real provider success is recorded yet.
+These steps require your accounts. The current [acceptance report](PAYPAL-ACCEPTANCE.md)
+records real OAuth/create/GET success and the unresolved seller-currency blocker.
+No completed real capture is recorded.
 
 1. In the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/),
    select **Sandbox** and create/select a REST app under a Sandbox business
@@ -10,8 +12,9 @@ These steps require your accounts. No real provider success is recorded yet.
    demo payee string is insufficient for real checkout.
 3. Create/select a separate Sandbox personal buyer account. Keep its login private.
    Never use a live account or real card. Set APP_ORIGIN to your exact app origin.
-4. Add an OpenAI API key and a Responses/function-calling model available to your
-   account. This app does not infer a model from a ChatGPT subscription. Restart.
+4. Configure the Astropods gateway runtime values or explicitly select the
+   deterministic fixture for payment acceptance. There is no paid fallback.
+   A fixture proposal must not be described as a real model result. Restart.
 5. Connect as shopper. Confirm configuration indicators, then select real model
    mode, ALLOW notebook, explicit $50 budget and $50 automatic limit. Tick consent.
    Verify two validated tool calls in the saved agent record and ALLOW policy.

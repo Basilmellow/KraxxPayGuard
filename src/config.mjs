@@ -27,6 +27,9 @@ export function loadConfig(env = process.env) {
   }
   const secondaryPayee = env.PAYPAL_SECONDARY_MERCHANT_ID || 'unconfigured-lab-merchant';
   if (env.PAYPAL_SECONDARY_MERCHANT_ID) requireValue(/^[A-Z0-9]{8,32}$/.test(secondaryPayee), 500, 'Invalid secondary Sandbox merchant ID');
+  const secondaryValues = [env.PAYPAL_SECONDARY_CLIENT_ID, env.PAYPAL_SECONDARY_CLIENT_SECRET, env.PAYPAL_SECONDARY_MERCHANT_ID];
+  if (secondaryValues.some(Boolean)) requireValue(secondaryValues.every(Boolean) && secondaryPayee !== payeeId,
+    500, 'Secondary merchant requires its own complete credential set and distinct merchant ID');
   return { host, port, origin, operatorToken: env.OPERATOR_TOKEN, shopperToken: env.SHOPPER_TOKEN,
     merchantPayees: { 'kraxx-demo-store': payeeId, 'kraxx-lab-supply': secondaryPayee },
     secondaryPayPal: { origin, payeeId: env.PAYPAL_SECONDARY_MERCHANT_ID || '',

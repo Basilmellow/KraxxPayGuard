@@ -1,5 +1,21 @@
 # Demo script — 2 minutes 50 seconds
 
+## Recorded fixture walkthrough
+
+`npm run record:demo` records a credential-free local walkthrough after installing
+the development dependencies and Chromium. It writes WebM, captions/recording
+metadata and a redacted report under ignored `artifacts/walkthrough/`. It uses
+an isolated memory database, ephemeral test principals, deterministic proposals
+and no provider credentials. No model or PayPal API is invoked.
+
+The 26 October recording is **1 minute 56.6 seconds**, verified from the encoded
+WebM metadata (the wall-time measurement is separate). It is captioned and has
+no narration audio. It demonstrates the buyer mandate, decision explorer,
+synthetic attack evaluation and export while disclosing pending real capture.
+This is a reviewable draft, not a verified live-payment submission video.
+
+## Final submission narration and gates
+
 Use real model and Sandbox credentials only after completing the acceptance
 runbook. Otherwise state the limitation plainly and demonstrate deterministic
 policy without claiming a real transaction. Never show `.env` or access tokens
@@ -24,3 +40,10 @@ credentialed verification remains pending.” Do not edit that limitation out.
 Expected normal scenarios: notebook → ALLOW; console with $700 budget/$100
 automatic limit → REVIEW; injected notebook merchant content → BLOCK.
 Lowering the total budget below a product's price is BLOCK, not REVIEW.
+
+For the buyer-mandate release, replace the fixed-item setup with an explicit
+two-offer allowance and show the genuine chosen proposal next to its immutable
+scope. Show the Attack Lab payload as lower-trust text and the fixed evaluation
+as synthetic policy evidence, not an AI robustness score. Replace the capture
+segment with the documented seller-currency blocker until acceptance succeeds.
+Do not record or publish a claim of completed capture without verified evidence.

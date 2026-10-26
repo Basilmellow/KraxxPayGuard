@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart LR
-  U[Authenticated user: item + budget + recipient] --> C[Immutable SQLite consent]
+  U[Authenticated buyer: offers + merchants + categories + beneficiary + budget] --> C[Immutable SQLite mandate]
   C --> A[Bounded commerce agent]
   M[Untrusted merchant description] --> A
   A --> P[Untrusted payment proposal]
@@ -32,8 +32,9 @@ reserves it once before any model call. Retries return that same record. A model
 failure or interrupted run stays denied; a new explicit grant is needed to
 retry an interrupted model workflow. A pending run cannot execute a payment.
 
-The model has only `read_catalog` and `propose_payment`. It can read one selected
-record and propose once; at most four provider calls are allowed. Every tool
+The model has only `read_catalog` and `propose_payment`. It can compare up to
+three authorized offers and propose one item it read; four provider calls are
+allowed. Every tool
 name/argument is checked on the server. No arbitrary URLs, network fetches,
 code execution, policy changes, review or payment tools are exposed. The server
 independently checks the proposal; even a fully compromised model has no payment
@@ -78,6 +79,34 @@ header + JSON-only POSTs; there are no ambient cookies or permissive CORS rules.
 Rate limits and provider token caches are process-local. See the deployment guide
 before exposing a demo. Multi-user identities and distributed storage/quotas are
 future work, not features claimed by this release candidate.
+
+## Typed mandates, lab data and evidence
+
+The `purchase-mandate/v1` JSON form grants product, merchant and category scopes;
+the server snapshots prices and payee mappings. Beneficiary labels are metadata,
+not verified identities or shipping instructions. One intent per authorization
+is still enforced by the existing UNIQUE constraint. Existing single-item JSON
+records remain unchanged; no operation IDs or payment states are migrated.
+
+Lab text is a separate lower-trust input saved with the reserved intent.
+Replays must use the same normalized payload and agent mode. It never becomes
+an instruction or tool schema. Typed mandates use detector signals as advisory;
+exact authority matching decides whether the proposal can proceed. Legacy
+scenarios keep their conservative text veto. Proposals, explanations, signals,
+policy reasons and validated tool events remain separate fields.
+
+Each merchant has a separate Sandbox provider instance. A missing secondary
+credential set denies checkout rather than reusing the primary app. Current
+merchant mappings and catalog prices are checked again at execution.
+
+`GET /api/judge/demo` returns synthetic fixtures and actual policy evaluations
+without reading records or invoking providers. Other API routes require bearer
+authentication. The dedicated local judge server additionally disables all
+authenticated API paths and uses memory-only synthetic data. Hosted OIDC remains.
+
+Redacted reports use an explicit field allowlist. They omit user/merchant text,
+explanations, labels, principals, recipient IDs and payment operation/provider
+IDs. They are evidence summaries, not independently signed attestations.
 
 ## Primary references used
 

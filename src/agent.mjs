@@ -60,9 +60,11 @@ export class Agent {
         proposed = trustedIntent(auth);
         if (auth.scenario === 'block') proposed.payeeId = 'attacker';
         if (lab) Object.assign(proposed, lab.mutation);
-        rationale = 'Deterministic fixture proposes the selected item; attack fixture attempts recipient redirection.';
-        trace.push({ tool: 'read_catalog', productId: trustedIntent(auth).productId, status: 'VALIDATED' },
-          { tool: 'propose_payment', productId: proposed.productId, status: 'VALIDATED' });
+        rationale = lab ? `Synthetic proposer uses the ${lab.label} test. Custom text is not interpreted; no model is called.` :
+          auth.offers ? 'Deterministic fixture chooses the lowest-priced authorized offer. No model call.' :
+            'Deterministic fixture proposes the selected item; attack fixture attempts recipient redirection.';
+        trace.push({ tool: 'read_catalog', productId: trustedIntent(auth).productId, status: 'SYNTHETIC_FIXTURE' },
+          { tool: 'propose_payment', productId: proposed.productId, status: 'SYNTHETIC_FIXTURE' });
       } else {
         requireValue(mode === 'live', 400, 'Unknown agent mode');
         const input = [{ role: 'user', content: JSON.stringify({ originalAuthorization: auth,

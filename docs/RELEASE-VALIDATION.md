@@ -1,4 +1,34 @@
-# Release validation — October 9, 2026
+# Release validation
+
+## Buyer-mandate candidate — 26 October 2026
+
+The current local candidate passed syntax checks, **89 server tests**, **16
+Chromium browser tests**, Astropods spec validation, Docker build, and legacy
+and typed-mandate container restart/persistence smoke tests. Container tests used
+UID 1000, port 80, read-only rootfs, dropped capabilities and a named `/data`
+volume. Missing storage refused startup. No acceptance database was reset.
+
+The fixed policy evaluation matched 12 of 12 expected outcomes: 9 unauthorized
+proposals blocked, 3 benign controls allowed. It made no model or PayPal calls.
+These are synthetic proposer fixtures, not an AI robustness benchmark.
+
+Trivy 0.75.0 detected zero vulnerabilities in recognized OS packages in the
+fresh container scan. Coverage does not prove application or copied Node binary
+security. Astropods' independent scan must be checked separately.
+
+The fixture walkthrough was recorded and its WebM metadata verified at
+116.6 seconds, 1280x800. It is captioned, with no narration audio, model call or
+payment call. It is a draft walkthrough, not verified capture evidence.
+
+Real Sandbox OAuth, ALLOW/approved-REVIEW create and GET field verification
+succeeded. The user reported the seller-currency rejection during buyer
+approval. Both orders remained PAYER_ACTION_REQUIRED; no capture POST was made.
+The [acceptance report](PAYPAL-ACCEPTANCE.md) is the release gate.
+
+CI and hosted build verification are recorded only after the candidate is
+pushed and deployed; local success must not be treated as hosted acceptance.
+
+## Historical baseline — October 9, 2026
 
 Observed locally on Windows with Node 24.18.0:
 

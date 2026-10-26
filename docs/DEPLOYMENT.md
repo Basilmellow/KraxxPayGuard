@@ -1,6 +1,8 @@
 # Deployment guidance
 
-Deployment has not been performed. Intended environment: one Node 24.18+ process
+The existing candidate is deployed on Astropods; its latest build must be
+verified after each rollout. [Platform configuration](ASTROPODS-DEPLOYMENT.md).
+The required environment is one Node 24.18+ process
 with a persistent local disk and TLS reverse proxy, for a controlled hackathon
 demonstration. This is not an ephemeral serverless or horizontally scaled app.
 

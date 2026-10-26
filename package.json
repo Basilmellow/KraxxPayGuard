@@ -11,7 +11,10 @@
     "start": "node --env-file-if-exists=.env src/server.mjs",
     "test": "node --test test/*.test.mjs",
     "check": "node scripts/check.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "judge": "node scripts/judge.mjs",
+    "evaluate:attacks": "node scripts/evaluate-attacks.mjs",
+    "record:demo": "node scripts/record-walkthrough.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0"

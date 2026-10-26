@@ -80,6 +80,8 @@ function issueMandate(body, owner, payees, now) {
     400, 'Original instruction must be 1–500 characters');
   const offers = body.productIds.map(productId => {
     const product = catalog[productId];
+    requireValue(typeof payees[product.merchantId] === 'string' && payees[product.merchantId].length > 0 && payees[product.merchantId].length <= 100,
+      500, 'Trusted merchant recipient mapping unavailable');
     requireValue(body.merchantIds.includes(product.merchantId) && body.categories.includes(product.category),
       400, 'Product is outside the explicit merchant or category scope');
     return Object.freeze({ productId, merchantId: product.merchantId, payeeId: payees[product.merchantId],

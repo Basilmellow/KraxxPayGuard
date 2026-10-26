@@ -28,8 +28,9 @@ boundary and require operational remediation.
 
 ## Residual limits and honest claims
 
-- Pattern detection is incomplete and may flag benign content. Authority checks
-  remain the security control. This is a closed catalog commerce workflow; it
+- Pattern detection is incomplete and may flag benign content. Typed mandates
+  treat signals as advisory; legacy scenarios retain their conservative veto.
+  Authority checks remain the security control. This is a closed catalog workflow; it
   does not browse arbitrary live shops or claim universal injection prevention.
 - The operator is trusted to approve within the user's already-granted budget.
   Operator and shopper keys represent two demo principals, not individual logins,
@@ -48,10 +49,26 @@ boundary and require operational remediation.
 - Loss of the database destroys idempotency evidence. Preserve it and inspect
   outstanding Sandbox orders before using a replacement database. Never reset
   an uncertain order just to make the demo succeed.
-- Tests establish behavior with mocks. Real OAuth, model responses, buyer login
-  and Sandbox capture remain a separate credentialed acceptance gate.
+- Automated suites establish behavior with mocks. Real OAuth/create/GET were
+  verified on 26 October; buyer approval failed with a seller-currency error.
+  Completed Sandbox capture remains a separate acceptance gate. Historical
+  gateway observations are not a guarantee of current credits or model behavior.
 - Denial events are capped at ten writes/minute/socket IP to limit audit-flood
   disk writes. Rate-limited attacks therefore do not produce an event per request.
 
 Report vulnerabilities privately to the repository owner through an available
 private GitHub channel. Do not post access keys or customer/payment data in issues.
+
+## Added surfaces in the buyer-mandate release
+
+- Allowed product/merchant/category lists and exact price snapshots are bounded
+  and validated by the server. Natural-language instructions cannot expand them.
+- Custom lab text is limited to 2000 characters, never fetched as a URL and never
+  interpreted as tool authority. One payload is bound to a single reserved intent.
+- The public judge route exposes synthetic data only. It cannot approve reviews,
+  use model/provider keys, reserve consent or read transaction history.
+- Redacted exports exclude free text and identifiers using an allowlist; they do
+  not prevent the authenticated user from manually copying their full record.
+- Secondary merchant credentials are isolated; an absent provider cannot fall
+  back to a different merchant. Second-merchant real acceptance is not claimed.
+- Beneficiary labels are unverified metadata, not a KYC, delivery or identity system.

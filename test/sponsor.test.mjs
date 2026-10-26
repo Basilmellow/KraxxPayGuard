@@ -35,3 +35,12 @@ test('gateway configuration rejects plaintext, credentials, and arbitrary paths'
   for (const url of ['http://gateway.example', 'https://user:secret@gateway.example', 'https://gateway.example/v1'])
     assert.throws(() => loadConfig({ ...env, ASTRO_GATEWAY_URL: url }));
 });
+test('invalid configured URL errors do not echo sensitive environment values', () => {
+  assert.throws(() => loadConfig({ ...env, ASTRO_GATEWAY_URL: 'private invalid gateway value' }),
+    error => !error.message.includes('private invalid gateway value') && error.message.includes('ASTRO_GATEWAY_URL'));
+});
+test('secondary merchant requires a complete distinct credential set', () => {
+  assert.throws(() => loadConfig({ ...env, PAYPAL_SECONDARY_MERCHANT_ID: 'SECOND123456' }), /complete credential/);
+  assert.throws(() => loadConfig({ ...env, PAYPAL_MERCHANT_ID: 'MERCHANT12345', PAYPAL_SECONDARY_MERCHANT_ID: 'MERCHANT12345',
+    PAYPAL_SECONDARY_CLIENT_ID: 'secondary', PAYPAL_SECONDARY_CLIENT_SECRET: 'secret' }), /distinct merchant/);
+});

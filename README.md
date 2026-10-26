@@ -1,18 +1,24 @@
 # Kraxx PayGuard
 
-**Money moves only when intent is verified.** A KRAXXSEC Payment Intent Firewall
-for autonomous shopping agents and PayPal Sandbox, built from the Sprint 1
-foundation for the PayPal AI Hackathon 2026.
+**Your agent chooses. Your mandate decides.** A buyer-side Payment Intent Firewall by **KRAXXSEC**, built for the PayPal AI Hackathon 2026.
 
-An authenticated user authorizes one catalog item, recipient and spending budget.
-A bounded agent reads merchant content and proposes a payment. Independent
-server policy returns **ALLOW / REVIEW / BLOCK**. Only eligible proposals can
-create an order; PayPal buyer approval and verified capture are separate steps.
+A buyer explicitly authorizes a product set, approved merchants, categories, beneficiary label and spending limits. An agent compares bounded catalog offers and proposes one purchase. The server independently enforces **ALLOW / REVIEW / BLOCK** before PayPal Sandbox execution. Merchant text and model output cannot grant permission, redirect funds, change prices or approve themselves.
 
-## Run locally
+## Try the guided demo without keys or credits
 
-Requires **Node 24.18+**, npm and a persistent writable disk. No runtime packages;
-SQLite is bundled with Node. Playwright is a development dependency only.
+Requires **Node 24.18+**. There are no runtime npm dependencies.
+
+```sh
+git clone https://github.com/Basilmellow/KraxxPayGuard.git
+cd KraxxPayGuard
+node scripts/judge.mjs
+```
+
+Open **http://127.0.0.1:3005/judge**. This read-only walkthrough evaluates synthetic proposals through the real server firewall, exposes no privileged principal, makes no model/payment calls and loads no `.env`. Its in-memory data is deliberately temporary; it cannot touch payment history or execute purchases. It remains reproducible if sponsor credits or hosted access are unavailable.
+
+Hosted workspace: [PayGuard](https://payguard-dc9871843ad4fa4b.agents.astropods.ai/). Astropods sign-in protects its front door. The guided `/judge` view needs no application token, but hosted visitors still need platform access. Real agent, review and payment actions require separately issued workspace tokens. No public shopper or operator key is supplied. See [judge access](docs/JUDGING.md).
+
+## Run the authenticated application
 
 ```sh
 npm ci
@@ -20,110 +26,70 @@ npm run setup
 npm start
 ```
 
-Open http://127.0.0.1:3000. Read the ignored `.env` locally and paste its
-`SHOPPER_TOKEN` into Workspace access. Tokens are held in browser memory and
-cleared from the input; reconnect after a reload. Use the distinct
-`OPERATOR_TOKEN` for human review. Setup refuses to overwrite an existing `.env`.
+Open http://127.0.0.1:3000. Read the ignored `.env` locally and paste the value after `SHOPPER_TOKEN=` into Workspace access. Use the distinct `OPERATOR_TOKEN` for pending human reviews. Setup never overwrites an existing `.env`. Tokens remain only in page memory and clear from the input and on reload.
 
-Choose a scenario, review the original instruction, budget and recipient, tick
-the consent box, then **Authorize & run agent**. Deterministic test mode works
-without model credentials. It never simulates PayPal transactions in the app.
-Real model mode fails closed if credentials or validated tools are unavailable.
+Choose up to three eligible offers, explicitly approve their merchant/category scope, set the beneficiary label, budget and automatic limit, then tick consent. Natural-language instructions provide context; the displayed typed fields grant authority. One immutable, 15-minute mandate can reserve one intent and buy one item. The agent may read up to three approved offers within four provider steps.
 
-## Real providers
+The synthetic six-product catalog has two demonstration stores. An unconfigured second merchant can be evaluated but cannot check out or borrow the first merchant's credentials. [Mandate model and limits](docs/BUYER-MANDATES.md). Legacy single-item ALLOW/REVIEW/BLOCK scenarios remain under Quick demos.
 
-For the container build, runtime secrets, persistent `/data` storage and hosted
-port 80 routing, see [Astropods deployment](docs/ASTROPODS-DEPLOYMENT.md).
+## AI, merchant text and the Attack Lab
 
-- Use the sponsor **Astropods AI Gateway** with signup credits and no payment
-  card. Follow [free setup](docs/FREE-SETUP.md) to configure its gateway credentials.
-  Astropods is the default; existing OpenAI keys are ignored. No paid fallback.
-- Add the **Sandbox** business app's `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
-  and that business account's `PAYPAL_MERCHANT_ID`; restart.
-- Create an eligible order, open its verified Sandbox buyer link, log in with a
-  separate Sandbox personal account and approve. Return to PayGuard and choose
-  **Verify buyer approval & capture**. The server verifies the order and then
-  records a matching completed capture. Never enter real payment credentials.
+Astropods' managed gateway is the default. Configure its runtime gateway URL, key and model through [free sponsor setup](docs/FREE-SETUP.md). The hosted blueprint declares `claude-haiku-4-5`; there is no automatic paid provider fallback. Signup credits are finite. Do not add a payment card for this demo.
 
-The endpoint is fixed to `https://api-m.sandbox.paypal.com`. OAuth and API
-requests reject redirects. The browser cannot supply amount, recipient, order
-ID or approval to checkout/capture. Provider status means credentials are
-configured; it does **not** prove account connectivity or a successful payment.
+The Attack Lab supports fixed attack descriptions and custom lower-trust text of at most 2000 characters. It cannot fetch URLs, add tools or change consent. The explorer keeps the genuine model proposal separate from policy findings. Real-mode failure stays BLOCK. Deterministic mode is visibly labelled and never silently replaces a failed model. It uses explicit synthetic proposal mutations; it does not interpret custom text.
 
-See [Sandbox runbook](docs/SANDBOX-RUNBOOK.md) for credential setup and evidence.
-No real model call or Sandbox transaction has been verified in this workspace;
-the automated suites use provider mocks. Their UI is explicitly labelled
-**Mock test provider / Mock test capture**.
+```sh
+npm run evaluate:attacks
+```
+
+The [recorded evaluation](docs/ATTACK-EVALUATION.md) concerns **synthetic policy tests, not model robustness**: 9 unauthorized proposals and 3 benign controls. Typed mandates use text signals as advisory; immutable authority checks enforce the boundary. Legacy scenarios retain their conservative detector veto.
+
+## Real PayPal acceptance — still a release gate
+
+Set the matching **Sandbox** business app Client ID, separate Secret and merchant ID in the server environment. Never use live credentials. Secondary-merchant credentials are optional and separate. Then restart.
+
+ALLOW permits order creation. REVIEW needs an independently authenticated operator; BLOCK has no override. A separate Personal Sandbox buyer must approve the provider order before capture. The server verifies item, recipient, exact amount/currency, intent/consent references and one completed final capture. Return-page parameters are not approval evidence.
+
+On **26 October 2026**, real Sandbox OAuth, ALLOW/approved-REVIEW order creation, and GET field verification succeeded. PayPal rejected buyer approval with a seller-currency error. Both orders remain `PAYER_ACTION_REQUIRED`; **no real completed capture is claimed**. They and their operation UUIDs are preserved. See the [provider acceptance report](docs/PAYPAL-ACCEPTANCE.md) and [Sandbox runbook](docs/SANDBOX-RUNBOOK.md). Automated payment tests use mocks.
+
+## Evidence and security boundaries
+
+- SQLite immutable consent, append-only application audit and one intent per grant.
+- Stable create/capture UUIDs, transactional leases and GET reconciliation after uncertain responses. No state reset or late duplicate payment shortcut.
+- Server-side owner/role checks, exact Origin, JSON/custom-header mutation guard, CSP, bounded bodies, request/model quotas and fixed Sandbox API host.
+- Redacted evidence export omits instructions, payloads, beneficiary labels, recipient/provider/operation IDs and principal identities.
+- Non-root container with mandatory persistent `/data`, port 80, exact HTTPS origin and a minimal digest-pinned runtime. One replica only.
+
+These are demo principals, not individual enterprise identities. Audit is not tamper-proof against a database administrator. This is a closed catalog with no fulfillment, account-wide spending ledger, refunds, webhooks or live payments. Read the [threat model](docs/THREAT-MODEL.md) before exposing a workspace.
 
 ## Validate
 
 ```sh
-npm test
 npm run check
+npm test
 npx playwright install chromium
 npm run test:e2e
+npm run evaluate:attacks
 ```
 
-Unit/security/integration tests cover immutable consent, budgets, role/owner
-isolation, HTTP hardening, agent tool abuse, PayPal mismatches, replay,
-concurrency, response loss and SQLite restart behavior. Browser E2E tests exercise
-the real dashboard and server with isolated databases and mocked providers.
-Screenshots/traces go to ignored `artifacts/`. CI runs all suites without secrets.
-`check` checks syntax; it is not a TypeScript typecheck or a security scanner.
+Browser tests use isolated databases and mocked providers; they cover the real dashboard, mandate scope, unsafe proposals, review, redaction, mobile layout and the restricted judge route. Artifacts are ignored. `check` checks JavaScript syntax, not TypeScript types or vulnerabilities. CI runs without real secrets.
 
-## Structure
+## Architecture and API
 
 | Module | Responsibility |
 | --- | --- |
-| `src/policy.mjs` | Trusted catalog, consent issuance, deterministic decisions |
-| `src/agent.mjs` | Responses API, two scoped tools, explicit deterministic fixtures |
-| `src/paypal.mjs` | Sandbox OAuth and Orders v2, evidence/link verification |
-| `src/payments.mjs` | Independent payment gate, durable claims and reconciliation |
-| `src/store.mjs` | SQLite authorizations, intents and append-only audit events |
-| `src/server.mjs`, `security.mjs`, `config.mjs` | HTTP routes, auth/ownership, CSRF, limits, configuration |
-| `public/` | Responsive KRAXXSEC dashboard; DOM text rendering, no secret persistence |
-| `test/`, `e2e/` | Unit/integration/security and Chromium browser regression tests |
+| `src/policy.mjs` | Trusted catalog, immutable mandates, independent firewall |
+| `src/agent.mjs`, `lab.mjs` | Scoped tools, genuine proposals and controlled merchant data |
+| `src/paypal.mjs`, `payments.mjs` | Sandbox evidence verification, provider routing, safe retries |
+| `src/store.mjs` | Durable authorization, intent, operation IDs, leases and audit |
+| `src/evidence.mjs`, `evaluation.mjs` | Redacted reports and labelled synthetic evaluations |
+| `src/server.mjs`, `security.mjs`, `config.mjs` | HTTP authorization and runtime boundary |
+| `public/` | Accessible decision explorer and guided walkthrough |
 
-## API boundaries
+Only `GET /api/judge/demo` is public at the application layer; it contains synthetic fixtures and cannot mutate state. Other `/api/*` routes require a bearer token. POSTs additionally require exact `Origin: APP_ORIGIN`, JSON and `X-PayGuard-Request: 1`. Authorizations require `Idempotency-Key`.
 
-All `/api/*` routes require `Authorization: Bearer <token>`.
-All POSTs also require the exact `Origin: APP_ORIGIN`, JSON content type and
-`X-PayGuard-Request: 1`. No cookies, query-string tokens, CORS or client approval
-callbacks are accepted. Limits are 120 requests/minute per socket IP and actor,
-plus 10 agent requests/minute per actor, within one process.
+Authenticated routes include status/catalog, authorization issuance, one scoped agent run per grant, owner intent/history, operator review/audit, checkout, capture, lab presets/evaluation and per-intent redacted evidence. Rate limits are process-local: 120 requests/minute per socket IP/principal, plus 10 agent requests/minute per principal. See [architecture](docs/ARCHITECTURE.md).
 
-| Endpoint | Purpose |
-| --- | --- |
-| `GET /api/status`, `/api/catalog` | Authenticated configuration and trusted catalog |
-| `POST /api/authorizations` | Explicit structured consent; `Idempotency-Key` required |
-| `POST /api/agent/runs` | `{authorizationId, mode}`; one intent per consent |
-| `GET /api/intents`, `/api/intents/:id` | Owner records; operator can inspect all |
-| `POST /api/intents/:id/review` | Operator only; `{approve: boolean}` for pending REVIEW |
-| `POST /api/intents/:id/checkout` | Empty object; server-owned order fields |
-| `POST /api/intents/:id/capture` | Empty object; provider approval and capture verification |
-| `GET /api/audit` | Operator-only latest 200 security/authorization/payment events |
+## Submission
 
-Consent expires after 15 minutes and cannot be edited. Each consent grants one
-item, not a reusable account-wide balance. Approved REVIEW must remain inside
-the original budget. BLOCK and rejected reviews cannot be overridden.
-
-## Deployment and scope
-
-Use a single Node process with persistent local SQLite storage, HTTPS on any
-remote bind, a protected operator token, and `APP_ORIGIN` set to the exact public
-origin. Follow [deployment guidance](docs/DEPLOYMENT.md). Do not deploy on
-ephemeral serverless filesystems or scale horizontally. The two scoped bearer
-principals are a controlled hackathon authentication model, not a multi-user
-identity system. The demo catalog is synthetic; there is no fulfillment service.
-No public deployment has been performed.
-
-There is no webhook receiver: capture completion is established through the
-authenticated Orders API, with GET reconciliation on retries. Refunds,
-chargebacks, asynchronous settlement notifications and live payments are outside
-this candidate's scope. Uncertain/pending responses are never marked completed.
-
-Read the [architecture](docs/ARCHITECTURE.md), [threat model](docs/THREAT-MODEL.md),
-[starter audit](docs/PHASE-0-AUDIT.md), [demo script](docs/DEMO.md), and
-[submission checklist](docs/SUBMISSION-CHECKLIST.md). MIT licensed.
-
-Recorded local results: [release validation](docs/RELEASE-VALIDATION.md).
+Target release: **9 November 2026**. Deadline: **12 November, 12:00 PM PST** (13 November, 1:30 AM IST). The owner must confirm eligibility and final rules. The [submission checklist](docs/SUBMISSION-CHECKLIST.md), [demo script](docs/DEMO.md), [judging access plan](docs/JUDGING.md), [deployment guide](docs/ASTROPODS-DEPLOYMENT.md) and [container scan limitations](docs/CONTAINER-SECURITY.md) record the remaining gates. This is an MIT-licensed evolution of the preserved Sprint 1 foundation.

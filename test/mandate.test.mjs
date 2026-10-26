@@ -129,4 +129,8 @@ test('secondary merchant payment uses separate Sandbox provider credentials', as
   assert.equal(f.fake.state.calls.length, 0);
   assert.equal(secondary.state.calls.length, 2);
   assert.equal(JSON.parse(secondary.state.calls[1].body).purchase_units[0].payee.merchant_id, 'SECOND123456');
+  secondary.state.approved = true;
+  const captured = await f.request(`/api/intents/${run.body.id}/capture`, {});
+  assert.equal(captured.body.payment.status, 'COMPLETED');
+  assert.equal(f.fake.state.calls.length, 0);
 });
