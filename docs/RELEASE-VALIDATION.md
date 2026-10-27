@@ -1,6 +1,62 @@
 # Release validation
 
-## Buyer-mandate candidate — 26 October 2026
+## Final non-payment prototype — 27 October 2026
+
+The owner deferred account-side payment troubleshooting and authorized
+finalization of the remaining prototype. This does not close completed-capture
+acceptance. No pending payment was retried, reset, replaced or cancelled.
+
+| Check | Recorded result |
+| --- | --- |
+| JavaScript syntax | Passed |
+| Server/security suite | 105 passed |
+| Chromium browser suite | 16 passed |
+| New local setup / repeat setup | Sponsor-only defaults valid; existing file preserved |
+| Existing local configuration | Recognized invalid gateway placeholder cleared; configuration parses; local real AI remains unconfigured |
+| Hosted runtime | Build e420da3d / application commit 0b30355 active; 2/2 workloads ready; no restarts reported |
+| Hosted judge UI | Signed-in ALLOW / REVIEW / BLOCK fixtures observed; no payment execution |
+| Actual hosted AI | Six completed Claude Haiku runs; four ALLOW, one REVIEW, one budget BLOCK; 12 validated tool responses |
+| Model-test payments | Every report NOT_CREATED; no PayPal operation invoked |
+| Astropods specification | Valid with installed CLI 0.28.1 |
+| Offline evidence summary | All six redacted exports checked; duplicates, mocks and inconsistent authority outcomes refused |
+| Privacy scan | 76 public/tracked candidate files checked against local private credential/token/merchant values; no matches |
+| New walkthrough | 130.64 seconds, 1280x800; captions and verified Opus narration; local fixtures plus labelled saved live evidence |
+| Narration | Offline Windows Speech; optional FFmpeg tool only in ignored artifacts, not a runtime dependency |
+| Local judge | Listening at 127.0.0.1:3005; no .env, durable DB or provider calls |
+| Hosting cost control | Sponsor credit plan; no payment method; credit enforcement active at check |
+| Availability follow-up | Daily read-only check through judging end configured; requires device/Codex availability |
+
+The live reports are in [LIVE-EVALUATION.md](LIVE-EVALUATION.md); the synthetic
+suite remains separate. The model ignored the two sampled redirection payloads;
+ALLOW for a matching authorized proposal is not a bypass. A proposed $49 item
+against a $20 authorization was denied. These selected cases do not establish a
+production safety rate. An export transport timeout was recovered and only
+saved, completed evidence was counted.
+
+The local judge requires no provider/account access. Hosted access still needs
+Astropods OIDC and privileged operations need separate workspace principals.
+No platform authentication was weakened. No new runtime image was built or
+deployed during finalization: changes affect documentation, evidence, local
+setup and development/recording tools; deployed app source is unchanged.
+Historical Docker/persistence/Trivy checks below are dated evidence, not fresh
+container-scan claims.
+
+The narrated video was visually inspected and its duration/audio streams
+verified. FFmpeg's standard build was obtained from the PyPI imageio-ffmpeg
+0.6.0 Windows wheel and its SHA-256 matched published metadata. The Playwright
+recording-only binary cannot mix narration; that failed attempt was replaced
+with the verified optional media tool. Narration tooling was exercised on
+Windows; other operating-system speech implementations were not tested.
+
+[PayPal acceptance](PAYPAL-ACCEPTANCE.md) remains PENDING / UNILATERAL, not
+completed funds receipt. No real duplicate-capture completion or fresh REVIEW
+payment acceptance is claimed. Video publication, final Devpost entry,
+eligibility/ownership confirmation and judge-access arrangement remain owner
+actions in the [submission package](SUBMISSION.md). No submission, support
+message or YouTube upload was performed.
+
+
+## Historical buyer-mandate candidate — 26 October 2026
 
 The current local candidate passed syntax checks, **89 server tests**, **16
 Chromium browser tests**, Astropods spec validation, Docker build, and legacy

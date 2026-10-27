@@ -363,3 +363,15 @@ investigate and advise resolution of the existing pending capture without a
 duplicate or replacement payment. No further repeated confirmation attempts
 are being prescribed. Completed capture and provider-backed duplicate
 reconciliation remain unverified. The deterministic verifier is unchanged.
+
+## Owner decision — payment acceptance deferred
+
+On 27 October 2026 the owner explicitly chose to set this pending-payment
+troubleshooting aside and finalize the rest of the project. No completed capture
+is claimed and the existing order, pending capture, original credentials,
+consent, request UUIDs, SQLite rows and audit remain preserved. No cancellation,
+replacement order or further capture is part of finalization. Six later hosted
+model tests created proposals only, with all payment statuses NOT_CREATED.
+The previous local and direct provider observations remain the last capture
+evidence; finalization did not poll or alter the pending payment again.
+The [submission package](SUBMISSION.md) discloses the limitation.

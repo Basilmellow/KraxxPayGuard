@@ -49,7 +49,28 @@ independent authority enforcement and verified payment evidence. The audience
 is buyers and small teams experimenting with delegated purchasing. No measured
 fraud reduction, customer adoption or savings is claimed.
 
-Keep the video below three minutes. A fixture walkthrough is not a live-payment
-acceptance video. Resolve the [Sandbox blocker](PAYPAL-ACCEPTANCE.md), record
-verified capture if claiming it, confirm access, upload the final video publicly
-and submit the correct links. Do not invent or silently substitute a capture.
+Keep the video below three minutes. The owner deferred the
+[Sandbox blocker](PAYPAL-ACCEPTANCE.md) on 27 October. The final prototype
+presentation must disclose pending capture; it must not turn an order's
+COMPLETED label into a claim of completed funds receipt. The walkthrough shows
+labelled fixtures and a replay of [saved real-model reports](LIVE-EVALUATION.md),
+not a new live payment. Upload the reviewed video publicly and submit the
+correct links using the [submission package](SUBMISSION.md).
+
+The [official rules](https://paypalaihackathon.devpost.com/rules) permit a
+functional locally runnable build with complete instructions as an access
+route. Use the no-key local judge command as the primary reproducibility path;
+the OIDC-protected hosted workspace is supplementary. Any privileged testing
+access must be arranged privately; never publish shopper/operator keys or
+Sandbox credentials in the public README. The owner must verify that the
+chosen access arrangement satisfies the organizers before submitting.
+
+## Daily availability follow-up
+
+A read-only daily follow-up was configured in the owner's Codex app on
+27 October, at 10 AM local time through the judging end. It checks readiness,
+credit/gating and the repository/HTTPS entry point, with no inference or payment
+calls and no automatic infrastructure changes. It surfaces meaningful failures
+or required owner actions rather than repeating healthy status. This requires
+the owner's device/Codex to be available and cannot guarantee continuous uptime
+or replenish sponsor credits. Local reproduction remains the independent path.

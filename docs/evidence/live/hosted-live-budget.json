@@ -1,0 +1,91 @@
+{
+  "schema": "payguard-redacted-evidence/v1",
+  "generatedAt": "2026-10-26T21:16:09.878Z",
+  "source": "REAL_APIS",
+  "policyVersion": "pg-v3",
+  "decision": "BLOCK",
+  "approval": "NOT_REQUIRED",
+  "mandate": {
+    "type": "legacy-single-item",
+    "maxPurchases": 1,
+    "currency": "USD",
+    "budgetCents": 2000,
+    "autoLimitCents": 2000,
+    "beneficiaryKind": "self",
+    "expiresAt": 1793049871160,
+    "offers": [
+      {
+        "productId": "notebook",
+        "merchantId": "kraxx-demo-store",
+        "amountCents": 4900,
+        "currency": "USD"
+      }
+    ]
+  },
+  "proposal": {
+    "productId": "notebook",
+    "merchantId": "kraxx-demo-store",
+    "amountCents": 4900,
+    "currency": "USD",
+    "recipient": "[REDACTED]"
+  },
+  "agent": {
+    "mode": "live",
+    "status": "COMPLETED",
+    "provider": "astropods",
+    "model": "claude-haiku-4-5",
+    "explanationSource": "MODEL_UNVERIFIED",
+    "trace": [
+      {
+        "tool": "read_catalog",
+        "productId": "notebook",
+        "status": "VALIDATED"
+      },
+      {
+        "tool": "propose_payment",
+        "productId": "notebook",
+        "status": "VALIDATED"
+      }
+    ]
+  },
+  "policy": {
+    "reasons": [
+      "Above original authorized budget"
+    ],
+    "signals": []
+  },
+  "lab": null,
+  "payment": {
+    "status": "NOT_CREATED",
+    "orderVerified": false,
+    "captureVerified": false
+  },
+  "audit": [
+    {
+      "seq": 49,
+      "event": "AGENT_STARTED",
+      "at": "2026-10-26T21:09:31.508Z"
+    },
+    {
+      "seq": 50,
+      "event": "EVALUATED",
+      "at": "2026-10-26T21:09:34.875Z"
+    }
+  ],
+  "redacted": [
+    "authorization and intent IDs",
+    "recipient IDs",
+    "operation IDs",
+    "provider order/capture IDs",
+    "original instruction",
+    "beneficiary label",
+    "merchant payload",
+    "model explanation",
+    "principal identities"
+  ],
+  "limitations": [
+    "Application audit is not independently tamper-proof.",
+    "Provider configuration alone does not prove payment completion.",
+    "Fixture, mock and live results must be evaluated separately."
+  ]
+}

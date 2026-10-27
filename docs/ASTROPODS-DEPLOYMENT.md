@@ -82,7 +82,20 @@ history and audit IDs before and after `ast agent restart --id <deployment-id>
 --component agent`. Only then run a real gateway proposal. Sandbox create,
 buyer approval and matching capture require separate provider verification.
 
-## Recorded validation
+## Current hosted verification — 27 October 2026
+
+Build `e420da3d`, application commit `0b30355`, is active with both workloads
+ready and no reported restarts. Its exact HTTPS `/judge` route was checked
+after Astropods sign-in: ALLOW / REVIEW / BLOCK were labelled synthetic and
+offered no payment execution. A separately authenticated shopper completed six
+real gateway proposal runs with no checkout/capture; see [live evidence](LIVE-EVALUATION.md).
+The blueprint still validates with installed CLI 0.28.1. Credit-plan status was
+active with about $9.99 sponsor credit, no payment method and enforced limits
+at inspection; this is not a future availability guarantee. No new deployment
+was performed during finalization. Later repository commits update development
+tools/docs without changing deployed application source.
+
+## Historical container and deployment validation
 
 - Docker build: passed on Docker Desktop Linux amd64, Node v24.21.0 after image hardening.
 - Container smoke: UID 1000, port 80 reachable through loopback port 3080,

@@ -1,39 +1,46 @@
-# Submission checklist — November 9, 2026 target
+# Submission checklist — candidate finalized 27 October 2026
 
-## Implemented candidate
+## Verified implementation and evidence
 
-- [x] Original starter inspected and baseline failures recorded/fixed
-- [x] Server-owned immutable structured consent and deterministic policy
-- [x] Bounded real model adapter and explicitly labelled deterministic agent
-- [x] Injection/redirection denial, role/owner/CSRF/rate protections
-- [x] Sandbox OAuth/create/buyer-link/capture integration and evidence verification
-- [x] Durable transactions, audit, operation IDs, claims and reconciliation
-- [x] Responsive KRAXXSEC dashboard and all three scenario flows
-- [x] Regression suites, CI configuration, MIT license and environment example
-- [x] Architecture, threat model, deployment/runbook and sub-three-minute script
-- [x] Typed single-use buyer mandates with server-owned offer/recipient snapshots
-- [x] Controlled Attack Lab, bounded custom text and separately retained proposals
-- [x] Reproducible synthetic evaluation and allowlisted redacted evidence export
-- [x] Read-only judge view and no-key, no-credit local reproduction command
-- [x] GitHub CI observed green on the pushed candidate: [run 37922401973](https://github.com/Basilmellow/KraxxPayGuard/actions/runs/37922401973)
+- [x] Immutable typed mandates and independent ALLOW / REVIEW / BLOCK firewall
+- [x] Six-offer catalog, merchant/category scopes and separate merchant providers
+- [x] Controlled Attack Lab, bounded custom data and redacted evidence exports
+- [x] Owner/operator gates, replay protection, durable SQLite/audit and stable payment request IDs
+- [x] Responsive decision explorer, history, mobile layout and no-key judge mode
+- [x] Six real hosted Astropods Claude Haiku runs documented separately from fixtures
+- [x] Synthetic evaluation: nine unauthorized proposal mutations, three benign controls
+- [x] 105 server/security tests and 16 browser tests locally passed
+- [x] Hosted e420da3d healthy; signed-in judge route and real proposal flows observed
+- [x] Real Sandbox OAuth, create, buyer approval and capture submission observed
+- [x] Pending capture and original account/credential-mixing limitations recorded honestly
+- [x] MIT source, README, architecture, threat model and local reproduction instructions
+- [x] Pitch and judge testing instructions prepared in [submission package](SUBMISSION.md)
 
-## Required before submission
+## Deliberately deferred payment acceptance
 
-- [ ] Real model API call observed with available account/model credentials
-- [x] Real Sandbox business OAuth, order creation and GET field verification (26 October)
-- [ ] Real Sandbox personal buyer approval and matching completed capture verified
-- [ ] Sandbox capture IDs cross-checked in business account transaction history
-- [ ] Credentialed REVIEW/BLOCK scenarios checked with no policy bypass
-- [ ] Hosted demo deployed and tested on its exact HTTPS origin, if submitting one
-- [ ] Demo video recorded in under three minutes without secrets/private data
-- [ ] Current live model evaluation reported separately from synthetic outcomes
-- [ ] Judge access confirmed and hosted credits available through 15 December
-- [ ] Hackathon eligibility/submission requirements verified by the owner
-- [ ] Submit correct repository, demo/video links and disclose remaining limitations
+- [ ] Existing PENDING / UNILATERAL capture reaches provider COMPLETED
+- [ ] Same capture reconciled locally with matching ID/amount/currency/recipient/references
+- [ ] Real duplicate-capture reconciliation and fresh REVIEW payment acceptance verified
 
-Provider mocks are not real Sandbox transactions. CI configuration is not proof
-of a completed remote CI run. Local release validation is recorded separately.
+The owner chose to continue the prototype with these gates open. No completed
+capture is claimed, no uncertain record is reset and no replacement payment is
+created. [Full acceptance report](PAYPAL-ACCEPTANCE.md).
 
-Hard deadline: 12 November 2026, noon PST (13 November, 1:30 AM IST).
-Official judging: 1 December, 2 PM PST through 15 December, 8 AM PST.
-Source: [official schedule](https://paypalaihackathon.devpost.com/details/dates).
+## Owner submission actions
+
+- [ ] Review final narrated video and public claims
+- [ ] Upload video publicly to YouTube and insert its URL in the entry
+- [ ] Confirm personal eligibility, licensing and official rules
+- [ ] Confirm judges can run the local build or obtain needed hosted access
+- [ ] Submit the repository, project description, video and testing instructions
+- [ ] Maintain access through the official judging end; check free hosting credits
+
+[Official requirements and rules](https://paypalaihackathon.devpost.com/rules)
+were read on 27 October. Clear local build instructions are an allowed demo
+access route. Hosted access still requires Astropods sign-in; never publish
+privileged workspace or provider keys. Sponsor credits and a monitor cannot
+guarantee uptime.
+
+Target release: 9 November. Hard deadline: **12 November, noon PST**
+(**13 November, 1:30 AM IST**). Judging: **1 December, 2 PM PST – 15 December,
+8 AM PST** ([official schedule](https://paypalaihackathon.devpost.com/details/dates)).

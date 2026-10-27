@@ -1,49 +1,56 @@
-# Demo script — 2 minutes 50 seconds
+# Demo recording and reproduction
 
-## Recorded fixture walkthrough
+## Current walkthrough — 27 October 2026
 
-`npm run record:demo` records a credential-free local walkthrough after installing
-the development dependencies and Chromium. It writes WebM, captions/recording
-metadata and a redacted report under ignored `artifacts/walkthrough/`. It uses
-an isolated memory database, ephemeral test principals, deterministic proposals
-and no provider credentials. No model or PayPal API is invoked.
+The narrated WebM is **130.64 seconds (2:10.64)**, 1280×800, with a verified
+Opus audio track and on-screen captions. Narration uses offline Windows speech;
+no paid/cloud voice service, copyrighted music or impersonated voice is used.
 
-The 26 October recording is **1 minute 56.6 seconds**, verified from the encoded
-WebM metadata (the wall-time measurement is separate). It is captioned and has
-no narration audio. It demonstrates the buyer mandate, decision explorer,
-synthetic attack evaluation and export while disclosing pending real capture.
-This is a reviewable draft, not a verified live-payment submission video.
+It shows the running local application with labelled synthetic ALLOW / REVIEW /
+BLOCK interactions, a two-offer buyer mandate, the Attack Lab, redacted export,
+and a clearly labelled replay of [six genuine hosted model reports](LIVE-EVALUATION.md).
+The replay does not call the model again. The recording itself makes zero model
+or PayPal requests and discloses that completed capture acceptance is deferred.
+It does not depict a completed real payment.
 
-## Final submission narration and gates
+Generated local artifacts are under ignored `artifacts/walkthrough-2026-10-27/`:
+`payguard-walkthrough-narrated.webm`, its silent source, captions/recording metadata,
+`narration.json`, a redacted fixture export and preview screenshots. These are
+local review artifacts, not a published YouTube submission.
 
-Use real model and Sandbox credentials only after completing the acceptance
-runbook. Otherwise state the limitation plainly and demonstrate deterministic
-policy without claiming a real transaction. Never show `.env` or access tokens
-in the video. Prepare separate shopper/operator browser contexts, not recorded
-token typing. Preflight new consent (15-minute expiry) and buyer login.
+## Recreate
 
-| Time | Screen/action | Narration |
-| --- | --- | --- |
-| 0:00–0:20 | Dashboard, original authorization | “Kraxx PayGuard is a Payment Intent Firewall by KRAXXSEC. Agents propose purchases; the server checks the exact authority the user granted.” |
-| 0:20–0:45 | ALLOW notebook, $50 budget, authorize and run | “The user authorizes one notebook, this recipient and a budget. The agent reads the catalog and proposes $49. Item, merchant, price, currency and budget match, so policy returns ALLOW.” |
-| 0:45–1:10 | Create order, Sandbox buyer approval, verified capture | “ALLOW permits order creation. It still requires PayPal Sandbox buyer approval. Before capture, PayGuard verifies the provider order. This capture ID and saved audit are provider evidence.” |
-| 1:10–1:40 | REVIEW console, shopper denied; operator approves | “This $650 item is inside the $700 user budget but above the $100 automatic limit. REVIEW requires the operator. The agent and shopper cannot grant that approval.” |
-| 1:40–2:15 | BLOCK injection, inspect reasons | “This merchant description asks the agent to redirect payment and override policy. The server retains the original grant. The redirection and injected instructions produce BLOCK. Even the operator cannot override it.” |
-| 2:15–2:35 | History/audit, tests | “Consent and operation IDs are durable. Duplicate calls reuse the same intent; lost capture responses reconcile the existing order. Security regressions test tampered recipients, prices, tool abuse and concurrency.” |
-| 2:35–2:50 | Dashboard/security boundary | “Model explanations are labelled as unverified. Decisions and payment evidence come from deterministic checks. Payment authorization stays with the user and server.” |
+Install Node 24.18+, development dependencies and Chromium. Record to a fresh
+artifact directory so earlier review versions remain available:
 
-If providers are unavailable, replace the capture segment with: “This is the
-deterministic test agent. PayPal credentials are unavailable, so no real payment
-is shown. The Sandbox lifecycle is implemented and covered with provider mocks;
-credentialed verification remains pending.” Do not edit that limitation out.
+```sh
+npm ci
+npx playwright install chromium
+npm run record:demo -- artifacts/my-walkthrough
+```
 
-Expected normal scenarios: notebook → ALLOW; console with $700 budget/$100
-automatic limit → REVIEW; injected notebook merchant content → BLOCK.
-Lowering the total budget below a product's price is BLOCK, not REVIEW.
+Optional Windows offline narration requires a full FFmpeg build with audio
+filters and Opus encoding, not Playwright's minimal recording binary. Put your
+trusted FFmpeg executable on PATH or set `FFMPEG_PATH`, then run PowerShell:
 
-For the buyer-mandate release, replace the fixed-item setup with an explicit
-two-offer allowance and show the genuine chosen proposal next to its immutable
-scope. Show the Attack Lab payload as lower-trust text and the fixed evaluation
-as synthetic policy evidence, not an AI robustness score. Replace the capture
-segment with the documented seller-currency blocker until acceptance succeeds.
-Do not record or publish a claim of completed capture without verified evidence.
+```powershell
+.\scripts\narrate-walkthrough.ps1 -OutputDirectory artifacts/my-walkthrough
+```
+
+The script reads only recording captions, synthesizes WAV segments to the
+artifact directory and mixes them locally. The mixer checks encoded duration,
+refuses a video of three minutes or longer and verifies an Opus audio track.
+The supplied project has no runtime speech/FFmpeg dependency. On other systems,
+the silent captioned recording remains usable, or supply equivalent narration
+WAV segments before `node scripts/mix-walkthrough.mjs artifacts/my-walkthrough`.
+
+Review the final video visually and audibly before uploading. Keep the fixture,
+saved live evidence and pending-payment disclosures. The [official requirements](https://paypalaihackathon.devpost.com/rules)
+call for a publicly visible YouTube video under three minutes and a functioning
+build; upload and final entry submission remain owner actions.
+
+## Historical draft
+
+The 26 October fixture-only draft was 116.6 seconds with captions and no audio.
+It predates the real-model evaluation and the pending-capture finding; use the
+current recording rather than its outdated seller-currency narration.

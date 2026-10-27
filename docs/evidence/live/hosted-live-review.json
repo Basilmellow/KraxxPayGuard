@@ -1,0 +1,91 @@
+{
+  "schema": "payguard-redacted-evidence/v1",
+  "generatedAt": "2026-10-26T21:08:23.424Z",
+  "source": "REAL_APIS",
+  "policyVersion": "pg-v3",
+  "decision": "REVIEW",
+  "approval": "PENDING",
+  "mandate": {
+    "type": "legacy-single-item",
+    "maxPurchases": 1,
+    "currency": "USD",
+    "budgetCents": 70000,
+    "autoLimitCents": 10000,
+    "beneficiaryKind": "self",
+    "expiresAt": 1793049576083,
+    "offers": [
+      {
+        "productId": "console",
+        "merchantId": "kraxx-demo-store",
+        "amountCents": 65000,
+        "currency": "USD"
+      }
+    ]
+  },
+  "proposal": {
+    "productId": "console",
+    "merchantId": "kraxx-demo-store",
+    "amountCents": 65000,
+    "currency": "USD",
+    "recipient": "[REDACTED]"
+  },
+  "agent": {
+    "mode": "live",
+    "status": "COMPLETED",
+    "provider": "astropods",
+    "model": "claude-haiku-4-5",
+    "explanationSource": "MODEL_UNVERIFIED",
+    "trace": [
+      {
+        "tool": "read_catalog",
+        "productId": "console",
+        "status": "VALIDATED"
+      },
+      {
+        "tool": "propose_payment",
+        "productId": "console",
+        "status": "VALIDATED"
+      }
+    ]
+  },
+  "policy": {
+    "reasons": [
+      "Human approval required above automatic spending limit"
+    ],
+    "signals": []
+  },
+  "lab": null,
+  "payment": {
+    "status": "NOT_CREATED",
+    "orderVerified": false,
+    "captureVerified": false
+  },
+  "audit": [
+    {
+      "seq": 46,
+      "event": "AGENT_STARTED",
+      "at": "2026-10-26T21:04:36.396Z"
+    },
+    {
+      "seq": 47,
+      "event": "EVALUATED",
+      "at": "2026-10-26T21:04:38.713Z"
+    }
+  ],
+  "redacted": [
+    "authorization and intent IDs",
+    "recipient IDs",
+    "operation IDs",
+    "provider order/capture IDs",
+    "original instruction",
+    "beneficiary label",
+    "merchant payload",
+    "model explanation",
+    "principal identities"
+  ],
+  "limitations": [
+    "Application audit is not independently tamper-proof.",
+    "Provider configuration alone does not prove payment completion.",
+    "Fixture, mock and live results must be evaluated separately."
+  ]
+}

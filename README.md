@@ -50,7 +50,19 @@ Set the matching **Sandbox** business app Client ID, separate Secret and merchan
 
 ALLOW permits order creation. REVIEW needs an independently authenticated operator; BLOCK has no override. A separate Personal Sandbox buyer must approve the provider order before capture. The server verifies item, recipient, exact amount/currency, intent/consent references and one completed final capture. Return-page parameters are not approval evidence.
 
-On **26 October 2026**, real Sandbox OAuth, ALLOW/approved-REVIEW order creation, and GET field verification succeeded. PayPal rejected buyer approval with a seller-currency error. Both orders remain `PAYER_ACTION_REQUIRED`; **no real completed capture is claimed**. They and their operation UUIDs are preserved. See the [provider acceptance report](docs/PAYPAL-ACCEPTANCE.md) and [Sandbox runbook](docs/SANDBOX-RUNBOOK.md). Automated payment tests use mocks.
+Real Sandbox OAuth, order creation, buyer approval and one explicitly authorized capture submission were observed. That capture remains **PENDING / UNILATERAL**, even though its order says COMPLETED. The strict verifier correctly refuses to mark the payment complete. Earlier currency-rejected orders and all operation identifiers are preserved. On **27 October 2026**, the owner deferred further payment troubleshooting so the non-payment prototype could be finalized. **Completed capture is not claimed.** See the [provider acceptance report](docs/PAYPAL-ACCEPTANCE.md) and [Sandbox runbook](docs/SANDBOX-RUNBOOK.md). Automated payment tests use mocks.
+
+## Verified prototype candidate — 27 October 2026
+
+The hosted `claude-haiku-4-5` agent completed **six real proposal runs**: four ALLOW, one REVIEW and one budget BLOCK, with 12 validated model tool responses and **no PayPal operations**. Recipient and encoded-redirection text did not redirect the observed proposals; benign security text remained allowed. These six selected cases are not a universal safety score. Inspect the [live evaluation and redacted exports](docs/LIVE-EVALUATION.md), separate from the 12 synthetic firewall cases.
+
+The current candidate passed **105 server/security tests and 16 browser tests**. Astropods build `e420da3d` was active with both workloads ready; its signed-in judge walkthrough and authenticated real-model flows were checked. Later repository commits add acceptance/evidence tooling and documentation; they do not replace the deployed application. No new payment or deployment is required to use the read-only judge demo.
+
+![Saved reports from six real hosted model runs](docs/images/recorded-live-evidence.png)
+
+The recording replays these redacted observations alongside labelled fixture interactions.
+
+Use the [submission package](docs/SUBMISSION.md) for the pitch, evidence links, judge instructions and remaining owner actions. The local walkthrough includes labelled fixtures and saved genuine model reports, with offline narration. Payment acceptance remains deferred, while final video publication, entry submission and judge access through the end of judging require owner follow-through.
 
 ## Evidence and security boundaries
 

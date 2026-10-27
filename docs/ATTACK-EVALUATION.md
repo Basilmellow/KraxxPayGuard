@@ -26,6 +26,12 @@ typed mandates keep those text signals advisory.
 
 ## Limits and genuine model evaluation
 
+Six real hosted runs were observed on 27 October 2026 (IST), separately from
+this synthetic suite. See the [live evaluation](LIVE-EVALUATION.md) for their
+four ALLOW, one REVIEW and one budget BLOCK outcomes, redacted source exports,
+reproduction instructions and limitations. No payment was initiated by those
+model tests.
+
 This is an authority-boundary regression suite, **not an AI benchmark**. The
 9 adversarial proposals are explicit test mutations, not claims that a real
 model followed each attack. Three benign controls cannot estimate a production
